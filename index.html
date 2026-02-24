@@ -426,6 +426,10 @@
                 <label class="form-label" id="t-packageName">Package Name</label>
                 <input type="text" id="app-package" class="form-input" placeholder="com.example.app">
             </div>
+            <div class="form-group">
+                <label class="form-label" id="t-iconUrl">Ссылка на иконку (необязательно)</label>
+                <input type="url" id="app-icon" class="form-input" placeholder="https://example.com/icon.png">
+            </div>
             <button class="btn btn-primary" onclick="saveProject()" id="t-save">Сохранить</button>
         </div>
     </div>
@@ -467,6 +471,7 @@
                 notOpenedYet: "Ещё не открывал",
                 appName: "Название приложения",
                 packageName: "Package Name",
+                iconUrl: "Ссылка на иконку (необязательно)",
                 save: "Сохранить",
                 emptyTests: "Inbox Zero!",
                 emptyTestsDesc: "Вы проверили все приложения на сегодня. Возвращайтесь завтра!",
@@ -490,6 +495,7 @@
                 notOpenedYet: "Not opened yet",
                 appName: "App Name",
                 packageName: "Package Name",
+                iconUrl: "Icon URL (optional)",
                 save: "Save",
                 emptyTests: "Inbox Zero!",
                 emptyTestsDesc: "You've checked all apps for today. Come back tomorrow!",
@@ -513,6 +519,7 @@
             document.getElementById('t-modalTitle').innerText = t.addApp;
             document.getElementById('t-appName').innerText = t.appName;
             document.getElementById('t-packageName').innerText = t.packageName;
+            document.getElementById('t-iconUrl').innerText = t.iconUrl;
             document.getElementById('t-save').innerText = t.save;
             
             // Load real data from backend
@@ -535,6 +542,7 @@
                     id: app.app_id,
                     name: app.name,
                     package: app.package_name,
+                    icon_url: app.icon_url,
                     status: 'pending' // Initial status before user clicks "Open Google Play"
                 }));
                 
@@ -553,6 +561,7 @@
                     id: project.app_id,
                     name: project.name,
                     package: project.package_name,
+                    icon_url: project.icon_url,
                     testers: project.testers || []
                 }));
                 
@@ -572,6 +581,15 @@
             const color = colors[Math.abs(hash) % colors.length];
             const letter = name.charAt(0).toUpperCase();
             return `<div class="avatar" style="background-color: ${color}">${letter}</div>`;
+        }
+
+        function renderIcon(name, iconUrl) {
+            if (iconUrl) {
+                // Escape quotes in name to prevent HTML injection in onerror
+                const safeName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `<img src="${iconUrl}" class="avatar" style="object-fit: cover;" onerror="this.outerHTML='${getAvatar(safeName)}'">`;
+            }
+            return getAvatar(name);
         }
 
         // --- Render Functions ---
@@ -614,7 +632,7 @@
 
                 card.innerHTML = `
                     <div class="card-header">
-                        ${getAvatar(test.name)}
+                        ${renderIcon(test.name, test.icon_url)}
                         <div class="card-info">
                             <div class="card-title">${test.name}</div>
                             <div class="card-subtitle">${test.package}</div>
@@ -687,7 +705,7 @@
                 
                 card.innerHTML = `
                     <div class="card-header" style="margin-bottom: 12px;">
-                        ${getAvatar(project.name)}
+                        ${renderIcon(project.name, project.icon_url)}
                         <div class="card-info">
                             <div class="card-title">${project.name}</div>
                             <div class="card-subtitle">${project.package}</div>
@@ -792,12 +810,14 @@
             setTimeout(() => {
                 document.getElementById('app-name').value = '';
                 document.getElementById('app-package').value = '';
+                document.getElementById('app-icon').value = '';
             }, 300);
         }
 
-        function saveProject() {
+        async function saveProject() {
             const nameInput = document.getElementById('app-name').value.trim();
             const packageInput = document.getElementById('app-package').value.trim();
+            const iconInput = document.getElementById('app-icon').value.trim();
 
             if (!nameInput || !packageInput) {
                 if (tg.showAlert) tg.showAlert(t.fillFields);
@@ -805,19 +825,41 @@
                 return;
             }
 
-            // For MVP, we just add it locally. 
-            // In a real app, this would be a POST /api/projects request.
-            myProjects.unshift({
-                id: Date.now(),
-                name: nameInput,
-                package: packageInput,
-                testers: []
-            });
+            const saveBtn = document.getElementById('t-save');
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = '...';
+            saveBtn.disabled = true;
 
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-
-            renderProjects();
-            closeModal();
+            try {
+                const response = await fetch(`${API_BASE}/projects`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        owner_id: userId,
+                        name: nameInput,
+                        package_name: packageInput,
+                        icon_url: iconInput || null
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    closeModal();
+                    loadProjects();
+                } else {
+                    if (tg.showAlert) tg.showAlert("Error saving project.");
+                }
+            } catch (error) {
+                console.error("Save project error:", error);
+                if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+            } finally {
+                saveBtn.innerText = originalText;
+                saveBtn.disabled = false;
+            }
         }
     </script>
 </body>
