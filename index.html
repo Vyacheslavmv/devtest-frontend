@@ -1,179 +1,824 @@
-import os
-import asyncio
-import logging
-from contextlib import asynccontextmanager
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DevTest Hub</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            /* Telegram Theme Variables with fallbacks */
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --hint-color: var(--tg-theme-hint-color, #8e8e93);
+            --link-color: var(--tg-theme-link-color, #3390ec);
+            --button-color: var(--tg-theme-button-color, #3390ec);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            --nav-bg-color: var(--tg-theme-bg-color, #f8f8f8);
+            --border-color: var(--tg-theme-hint-color, #e5e5ea);
+            
+            /* Custom Colors */
+            --success-color: #34c759;
+            --warning-color: #ffcc00;
+            --warning-text-color: #000000;
+        }
 
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart, CommandObject
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, Update
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 70px; /* Space for bottom nav */
+            overflow-x: hidden;
+        }
 
-import database as db
+        /* Typography */
+        h1, h2, h3 { margin: 0 0 12px 0; }
+        p { margin: 0 0 12px 0; color: var(--hint-color); font-size: 14px; }
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+        /* Layout */
+        .container { padding: 16px; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
 
-# Переменные окружения
-BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_TOKEN_HERE")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://your-render-app.onrender.com/webhook")
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://your-vercel-app-url.vercel.app")
+        /* Cards */
+        .card {
+            background-color: var(--secondary-bg-color);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform-origin: top center;
+            opacity: 1;
+        }
 
-# Инициализация бота и диспетчера
-bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
+        .card.removing {
+            opacity: 0;
+            transform: scale(0.9) translateY(-10px);
+            margin-bottom: -100px; /* Collapse space */
+            pointer-events: none;
+        }
 
-# --- FastAPI Lifespan ---
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Управляет жизненным циклом FastAPI приложения.
-    Устанавливает вебхук при старте и удаляет при остановке.
-    """
-    logger.info("Установка вебхука Telegram...")
-    await bot.set_webhook(url=WEBHOOK_URL, allowed_updates=dp.resolve_used_update_types())
-    yield
-    logger.info("Удаление вебхука Telegram...")
-    await bot.delete_webhook(drop_pending_updates=True)
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
 
-# Инициализация FastAPI
-app = FastAPI(lifespan=lifespan)
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
 
-# Настройка CORS (разрешаем все домены для MVP)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        .card-info {
+            flex-grow: 1;
+            overflow: hidden;
+        }
 
-# --- FastAPI Endpoints ---
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-class CheckinRequest(BaseModel):
-    tester_id: int
-    app_id: int
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--hint-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
 
-@app.post("/api/checkin")
-async def api_checkin(req: CheckinRequest):
-    """
-    Эндпоинт для Web App. Отмечает ежедневный запуск приложения.
-    Вызов БД оборачивается в asyncio.to_thread, чтобы не блокировать event loop.
-    """
-    # Обновляем дату чекина
-    await asyncio.to_thread(db.update_daily_checkin, req.tester_id, req.app_id)
-    
-    # Получаем информацию о приложении и тестере для уведомления
-    app_info = await asyncio.to_thread(db.get_app_info, req.app_id)
-    tester_username = await asyncio.to_thread(db.get_tester_info, req.tester_id)
-    
-    if app_info:
-        owner_id = app_info.get('owner_id')
-        app_name = app_info.get('name')
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 13px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 8px;
+            background-color: rgba(142, 142, 147, 0.2);
+            border-radius: 4px;
+            margin-right: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success-color);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Buttons */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:active { opacity: 0.7; }
+        .btn-primary { background-color: var(--button-color); color: var(--button-text-color); }
+        .btn-success { background-color: var(--success-color); color: #fff; }
+        .btn-warning { background-color: var(--warning-color); color: var(--warning-text-color); }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--secondary-bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid rgba(142, 142, 147, 0.2);
+        }
+
+        .done-text {
+            text-align: center;
+            color: var(--success-color);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 0;
+        }
+
+        /* Testers List */
+        .testers-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(142, 142, 147, 0.2);
+        }
+
+        .testers-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .tester-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tester-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(142, 142, 147, 0.1);
+        }
+
+        .tester-list li:last-child {
+            border-bottom: none;
+        }
+
+        .tester-link {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .tester-id {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .tester-date {
+            color: var(--hint-color);
+            font-size: 12px;
+        }
+
+        .tester-date.empty {
+            color: var(--warning-color);
+            font-style: italic;
+        }
+
+        .no-testers {
+            font-size: 13px;
+            color: var(--hint-color);
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* Accordion */
+        .accordion { margin-top: 24px; border-radius: 16px; overflow: hidden; }
+        .accordion-header {
+            padding: 16px;
+            background-color: var(--secondary-bg-color);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .accordion-content {
+            display: none;
+            padding: 16px 0 0 0;
+        }
+        .accordion.active .accordion-content { display: block; }
+        .accordion-icon {
+            transition: transform 0.3s;
+            font-size: 12px;
+            color: var(--hint-color);
+        }
+        .accordion.active .accordion-icon { transform: rotate(180deg); }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 60px;
+            background-color: var(--nav-bg-color);
+            display: flex;
+            border-top: 1px solid rgba(142, 142, 147, 0.2);
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--hint-color);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active { color: var(--link-color); }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; }
+
+        /* Modal / Form */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: flex-end;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            padding: 24px 16px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
+        }
+
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--hint-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(142, 142, 147, 0.3);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .form-input:focus { border-color: var(--link-color); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--hint-color);
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TAB 1: Мои тесты -->
+    <div id="tab-tests" class="container tab-content active">
+        <h2 id="t-testsTitle">Мои тесты</h2>
+        <p id="t-testsDesc">Приложения, которые вы должны открывать каждый день.</p>
         
-        # Формируем имя тестера (юзернейм или ID)
-        username_str = f"@{tester_username}" if tester_username else f"ID: {req.tester_id}"
+        <div id="tests-list">
+            <!-- Active cards will be injected here -->
+        </div>
+
+        <div id="done-section" class="accordion" style="display: none;">
+            <div class="accordion-header" onclick="toggleAccordion()">
+                <div><span id="t-doneToday">✅ Выполнено сегодня</span> (<span id="done-count">0</span>)</div>
+                <div class="accordion-icon">▼</div>
+            </div>
+            <div class="accordion-content" id="done-list">
+                <!-- Done cards will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Мои проекты -->
+    <div id="tab-projects" class="container tab-content">
+        <h2 id="t-projectsTitle">Мои проекты</h2>
+        <p id="t-projectsDesc">Ваши приложения, которые тестируют другие.</p>
         
-        # Отправляем уведомление владельцу
-        try:
-            await bot.send_message(
-                chat_id=owner_id,
-                text=f"✅ Тестировщик {username_str} только что зашел в твоё приложение <b>{app_name}</b>!"
-            )
-        except Exception as e:
-            # Если бот заблокирован пользователем или другая ошибка, просто логируем
-            logger.error(f"Не удалось отправить уведомление владельцу {owner_id}: {e}")
+        <button class="btn btn-primary" style="margin-bottom: 24px;" onclick="openModal()">
+            <span id="t-addApp">+ Добавить приложение</span>
+        </button>
+
+        <div id="projects-list">
+            <!-- Project cards will be injected here -->
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('tests', this)">
+            <div class="nav-icon">📱</div>
+            <div id="t-tabTests">Мои тесты</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('projects', this)">
+            <div class="nav-icon">🚀</div>
+            <div id="t-tabProjects">Мои проекты</div>
+        </div>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div id="add-modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="t-modalTitle">Добавить приложение</h3>
+            <div class="form-group">
+                <label class="form-label" id="t-appName">Название приложения</label>
+                <input type="text" id="app-name" class="form-input" placeholder="Super Task Tracker">
+            </div>
+            <div class="form-group">
+                <label class="form-label" id="t-packageName">Package Name</label>
+                <input type="text" id="app-package" class="form-input" placeholder="com.example.app">
+            </div>
+            <button class="btn btn-primary" onclick="saveProject()" id="t-save">Сохранить</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // --- Localization & User Data ---
+        const initData = tg.initDataUnsafe || {};
+        const langCode = initData.user?.language_code;
+        const userId = initData.user?.id || 123456789; // Fallback for browser testing
+        
+        const API_BASE = 'https://devtest-backend.onrender.com/api';
+        
+        // Default to 'ru' if outside Telegram, else 'en' if not 'ru'
+        let lang = 'ru';
+        if (Object.keys(initData).length > 0) {
+            lang = (langCode === 'ru') ? 'ru' : 'en';
+        }
+
+        const dict = {
+            ru: {
+                tabTests: "Мои тесты",
+                tabProjects: "Мои проекты",
+                testsDesc: "Приложения, которые вы должны открывать каждый день.",
+                projectsDesc: "Ваши приложения, которые тестируют другие.",
+                addApp: "+ Добавить приложение",
+                openPlay: "1️⃣ Открыть Google Play",
+                confirmStart: "2️⃣ Подтвердить запуск",
+                leaveReview: "🌟 Оставить приватный отзыв",
+                claimReward: "🎁 Забрать награду и завершить",
+                doneToday: "✅ Выполнено сегодня",
+                doneTodayText: "✅ Выполнено на сегодня",
+                testersList: "Тестировщики",
+                noTesters: "Пока нет тестировщиков",
+                notOpenedYet: "Ещё не открывал",
+                appName: "Название приложения",
+                packageName: "Package Name",
+                save: "Сохранить",
+                emptyTests: "Inbox Zero!",
+                emptyTestsDesc: "Вы проверили все приложения на сегодня. Возвращайтесь завтра!",
+                emptyProjects: "У вас пока нет добавленных проектов.",
+                fillFields: "Пожалуйста, заполните все поля."
+            },
+            en: {
+                tabTests: "My Tests",
+                tabProjects: "My Projects",
+                testsDesc: "Apps you need to open every day.",
+                projectsDesc: "Your apps being tested by others.",
+                addApp: "+ Add app",
+                openPlay: "1️⃣ Open Google Play",
+                confirmStart: "2️⃣ Confirm start",
+                leaveReview: "🌟 Leave Private Review",
+                claimReward: "🎁 Claim Reward & Finish",
+                doneToday: "✅ Done for today",
+                doneTodayText: "✅ Done for today",
+                testersList: "Testers",
+                noTesters: "No testers yet",
+                notOpenedYet: "Not opened yet",
+                appName: "App Name",
+                packageName: "Package Name",
+                save: "Save",
+                emptyTests: "Inbox Zero!",
+                emptyTestsDesc: "You've checked all apps for today. Come back tomorrow!",
+                emptyProjects: "You have no projects yet.",
+                fillFields: "Please fill in all fields."
+            }
+        };
+
+        const t = dict[lang];
+
+        // Apply translations to static UI
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('t-tabTests').innerText = t.tabTests;
+            document.getElementById('t-tabProjects').innerText = t.tabProjects;
+            document.getElementById('t-testsTitle').innerText = t.tabTests;
+            document.getElementById('t-testsDesc').innerText = t.testsDesc;
+            document.getElementById('t-projectsTitle').innerText = t.tabProjects;
+            document.getElementById('t-projectsDesc').innerText = t.projectsDesc;
+            document.getElementById('t-addApp').innerText = t.addApp;
+            document.getElementById('t-doneToday').innerText = t.doneToday;
+            document.getElementById('t-modalTitle').innerText = t.addApp;
+            document.getElementById('t-appName').innerText = t.appName;
+            document.getElementById('t-packageName').innerText = t.packageName;
+            document.getElementById('t-save').innerText = t.save;
             
-    return {"status": "success"}
+            // Load real data from backend
+            loadTasks();
+            loadProjects();
+        });
 
-@app.get("/api/tasks/{user_id}")
-async def api_get_tasks(user_id: int):
-    """
-    Возвращает список приложений для тестирования на сегодня и доступные новые приложения.
-    """
-    to_test_today = await asyncio.to_thread(db.get_apps_to_test_today, user_id)
-    available_apps = await asyncio.to_thread(db.get_available_apps, user_id)
-    return {
-        "to_test_today": to_test_today,
-        "available_apps": available_apps
-    }
+        // --- State ---
+        let myTests = [];
+        let myProjects = [];
 
-@app.get("/api/projects/{owner_id}")
-async def api_get_projects(owner_id: int):
-    """
-    Возвращает список проектов пользователя и их тестеров.
-    """
-    projects = await asyncio.to_thread(db.get_my_apps_stats, owner_id)
-    return projects
+        // --- API Calls ---
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${userId}`);
+                const data = await response.json();
+                
+                // Map backend data to frontend structure
+                myTests = data.to_test_today.map(app => ({
+                    id: app.app_id,
+                    name: app.name,
+                    package: app.package_name,
+                    status: 'pending' // Initial status before user clicks "Open Google Play"
+                }));
+                
+                renderTests();
+            } catch (error) {
+                console.error("Error loading tasks:", error);
+            }
+        }
 
-@app.post("/webhook")
-async def telegram_webhook(request: Request):
-    """
-    Эндпоинт для получения апдейтов от Telegram (Webhooks).
-    """
-    update_dict = await request.json()
-    update = Update.model_validate(update_dict, context={"bot": bot})
-    await dp.feed_update(bot, update)
-    return {"status": "ok"}
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/projects/${userId}`);
+                const data = await response.json();
+                
+                myProjects = data.map(project => ({
+                    id: project.app_id,
+                    name: project.name,
+                    package: project.package_name,
+                    testers: project.testers || []
+                }));
+                
+                renderProjects();
+            } catch (error) {
+                console.error("Error loading projects:", error);
+            }
+        }
 
-# --- Aiogram Bot Logic ---
+        // --- Helpers ---
+        function getAvatar(name) {
+            const colors = ['#f5625d', '#f5b55d', '#5df562', '#5dcbf5', '#5d62f5', '#cb5df5'];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const color = colors[Math.abs(hash) % colors.length];
+            const letter = name.charAt(0).toUpperCase();
+            return `<div class="avatar" style="background-color: ${color}">${letter}</div>`;
+        }
 
-def get_webapp_keyboard() -> InlineKeyboardMarkup:
-    """Создает клавиатуру с кнопкой для открытия Web App."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="📱 Открыть Дашборд",
-                    web_app=WebAppInfo(url=WEB_APP_URL)
-                )
-            ]
-        ]
-    )
-
-@dp.message(CommandStart())
-async def cmd_start(message: types.Message, command: CommandObject):
-    """
-    Обработчик команды /start.
-    Также обрабатывает Deep Links вида t.me/BotName?start=app_5
-    """
-    user_id = message.from_user.id
-    username = message.from_user.username or ""
-    
-    # Добавляем/обновляем юзера в БД (асинхронно через to_thread)
-    await asyncio.to_thread(db.add_user, user_id, username)
-
-    # Проверяем наличие аргументов (Deep Link)
-    args = command.args
-    if args and args.startswith("app_"):
-        try:
-            # Извлекаем ID приложения из строки "app_5"
-            app_id = int(args.split("_")[1])
+        // --- Render Functions ---
+        function renderTests() {
+            const activeList = document.getElementById('tests-list');
+            const doneList = document.getElementById('done-list');
+            activeList.innerHTML = '';
+            doneList.innerHTML = '';
             
-            # Регистрируем тестера в базе
-            await asyncio.to_thread(db.start_testing, user_id, app_id)
-            
-            await message.answer(
-                "✅ <b>Вы успешно присоединились к тестированию приложения!</b>\n\n"
-                "Откройте дашборд, чтобы скачать его и отметиться.",
-                reply_markup=get_webapp_keyboard()
-            )
-            return
-        except ValueError:
-            # Если после "app_" идет не число, игнорируем ошибку и показываем обычный старт
-            pass
+            let activeCount = 0;
+            let doneCount = 0;
 
-    # Обычный запуск бота
-    await message.answer(
-        "👋 <b>Добро пожаловать в DevTest Hub!</b>\n\n"
-        "Здесь Android-разработчики помогают друг другу проходить правило "
-        "«20 тестировщиков на 14 дней».\n\n"
-        "Нажмите кнопку ниже, чтобы открыть свой дашборд, добавить приложение "
-        "или начать тестирование других проектов.",
-        reply_markup=get_webapp_keyboard()
-    )
+            myTests.forEach(test => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.id = `test-card-${test.id}`;
+                
+                let actionsHtml = '';
+                if (test.status === 'pending') {
+                    actionsHtml = `
+                        <button class="btn btn-primary" onclick="openPlay(${test.id}, '${test.package}')">
+                            ${t.openPlay}
+                        </button>
+                    `;
+                } else if (test.status === 'opened') {
+                    actionsHtml = `
+                        <div class="action-row">
+                            <button class="btn btn-success" style="flex-grow: 1;" onclick="confirmStart(${test.id})">
+                                ${t.confirmStart}
+                            </button>
+                        </div>
+                    `;
+                } else if (test.status === 'done') {
+                    actionsHtml = `
+                        <div class="done-text">
+                            ${t.doneTodayText}
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        ${getAvatar(test.name)}
+                        <div class="card-info">
+                            <div class="card-title">${test.name}</div>
+                            <div class="card-subtitle">${test.package}</div>
+                        </div>
+                    </div>
+                    <div id="actions-${test.id}">
+                        ${actionsHtml}
+                    </div>
+                `;
+                
+                if (test.status === 'done') {
+                    doneList.appendChild(card);
+                    doneCount++;
+                } else {
+                    activeList.appendChild(card);
+                    activeCount++;
+                }
+            });
+
+            document.getElementById('done-count').innerText = doneCount;
+            document.getElementById('done-section').style.display = doneCount > 0 ? 'block' : 'none';
+
+            if (activeCount === 0) {
+                activeList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎉</div>
+                        <h3>${t.emptyTests}</h3>
+                        <p>${t.emptyTestsDesc}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('projects-list');
+            container.innerHTML = '';
+
+            if (myProjects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📂</div>
+                        <p>${t.emptyProjects}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            myProjects.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                let testersHtml = '';
+                if (project.testers && project.testers.length > 0) {
+                    testersHtml = '<ul class="tester-list">';
+                    project.testers.forEach(tester => {
+                        const nameHtml = tester.username 
+                            ? `<a href="https://t.me/${tester.username}" target="_blank" class="tester-link">@${tester.username}</a>`
+                            : `<span class="tester-id">ID: ${tester.tester_id}</span>`;
+                        
+                        const dateHtml = tester.last_check_date 
+                            ? `<span class="tester-date">${tester.last_check_date}</span>`
+                            : `<span class="tester-date empty">${t.notOpenedYet}</span>`;
+                            
+                        testersHtml += `<li>${nameHtml} ${dateHtml}</li>`;
+                    });
+                    testersHtml += '</ul>';
+                } else {
+                    testersHtml = `<p class="no-testers">${t.noTesters}</p>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="card-header" style="margin-bottom: 12px;">
+                        ${getAvatar(project.name)}
+                        <div class="card-info">
+                            <div class="card-title">${project.name}</div>
+                            <div class="card-subtitle">${project.package}</div>
+                        </div>
+                    </div>
+                    <div class="testers-section">
+                        <div class="testers-title">${t.testersList} (${project.testers ? project.testers.length : 0})</div>
+                        ${testersHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- Actions ---
+        function openPlay(id, pkg) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            
+            // Open Google Play
+            tg.openLink(`https://play.google.com/store/apps/details?id=${pkg}`);
+            
+            // Update state locally to show "Confirm" button
+            const test = myTests.find(t => t.id === id);
+            if (test) {
+                test.status = 'opened';
+                renderTests();
+            }
+        }
+
+        async function confirmStart(id) {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            
+            const card = document.getElementById(`test-card-${id}`);
+            if (card) {
+                card.classList.add('removing');
+                
+                try {
+                    const response = await fetch(`${API_BASE}/checkin`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            tester_id: userId,
+                            app_id: id
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        setTimeout(() => {
+                            // Reload tasks from server to reflect the checkin
+                            loadTasks();
+                        }, 400);
+                    } else {
+                        card.classList.remove('removing');
+                        if (tg.showAlert) tg.showAlert("Error checking in.");
+                    }
+                } catch (error) {
+                    console.error("Checkin error:", error);
+                    card.classList.remove('removing');
+                    if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+                }
+            }
+        }
+
+        function switchTab(tabId, navElement) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            navElement.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        function toggleAccordion() {
+            const accordion = document.getElementById('done-section');
+            const content = document.getElementById('done-list');
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                accordion.classList.remove('active');
+            } else {
+                content.classList.add('active');
+                accordion.classList.add('active');
+            }
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        // --- Modal Logic ---
+        function openModal() {
+            document.getElementById('add-modal').classList.add('active');
+            document.getElementById('app-name').focus();
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== document.getElementById('add-modal')) return;
+            document.getElementById('add-modal').classList.remove('active');
+            
+            setTimeout(() => {
+                document.getElementById('app-name').value = '';
+                document.getElementById('app-package').value = '';
+            }, 300);
+        }
+
+        function saveProject() {
+            const nameInput = document.getElementById('app-name').value.trim();
+            const packageInput = document.getElementById('app-package').value.trim();
+
+            if (!nameInput || !packageInput) {
+                if (tg.showAlert) tg.showAlert(t.fillFields);
+                else alert(t.fillFields);
+                return;
+            }
+
+            // For MVP, we just add it locally. 
+            // In a real app, this would be a POST /api/projects request.
+            myProjects.unshift({
+                id: Date.now(),
+                name: nameInput,
+                package: packageInput,
+                testers: []
+            });
+
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+            renderProjects();
+            closeModal();
+        }
+    </script>
+</body>
+</html>
