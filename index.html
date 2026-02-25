@@ -389,8 +389,9 @@
 
     <!-- TAB 1: Мои тесты -->
     <div id="tab-tests" class="container tab-content active">
-        <div class="banner" style="background-color: var(--secondary-bg-color); padding: 16px; border-radius: 16px; margin-bottom: 16px;">
-            <p id="t-bannerText" style="margin: 0; color: var(--text-color); font-size: 14px; line-height: 1.4;">Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 20 тестеров в одном месте и находите новые приложения для взаимного теста.</p>
+        <div class="banner" id="main-banner" style="background-color: var(--secondary-bg-color); padding: 16px; border-radius: 16px; margin-bottom: 16px; position: relative;">
+            <button onclick="closeBanner()" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 16px; color: var(--hint-color); cursor: pointer; padding: 4px;">✖</button>
+            <p id="t-bannerText" style="margin: 0; color: var(--text-color); font-size: 14px; line-height: 1.4; padding-right: 20px;">Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 20 тестеров в одном месте и находите новые приложения для взаимного теста.</p>
         </div>
         <h2 id="t-testsTitle">Мои тесты</h2>
         <p id="t-testsDesc">Приложения, которые вы должны открывать каждый день.</p>
@@ -523,7 +524,8 @@
                 inviteLink: "Инвайт-ссылка",
                 deleteProject: "Завершить (Удалить)",
                 inviteCopied: "Ссылка скопирована! Отправьте её для взаимного теста.",
-                confirmDelete: "Вы уверены, что хотите удалить этот проект? Все данные о тестировщиках будут потеряны."
+                confirmDelete: "Вы уверены, что хотите удалить этот проект? Все данные о тестировщиках будут потеряны.",
+                deleteReminder: "⚠️ Пожалуйста, удаляйте проекты после успешного релиза в Google Play, чтобы не тратить время других тестеров впустую!"
             },
             en: {
                 tabTests: "My Tests",
@@ -562,7 +564,8 @@
                 inviteLink: "Invite link",
                 deleteProject: "Finish (Delete)",
                 inviteCopied: "Link copied! Send it for mutual testing.",
-                confirmDelete: "Are you sure you want to delete this project? All tester data will be lost."
+                confirmDelete: "Are you sure you want to delete this project? All tester data will be lost.",
+                deleteReminder: "⚠️ Please delete your projects after a successful release so as not to waste other testers' time!"
             }
         };
 
@@ -570,6 +573,11 @@
 
         // Apply translations to static UI
         document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('hideBanner') === 'true') {
+                const banner = document.getElementById('main-banner');
+                if (banner) banner.style.display = 'none';
+            }
+
             document.getElementById('t-tabTests').innerText = t.tabTests;
             document.getElementById('t-tabProjects').innerText = t.tabProjects;
             document.getElementById('t-testsTitle').innerText = t.tabTests;
@@ -656,9 +664,8 @@
 
         function renderIcon(name, iconUrl) {
             if (iconUrl) {
-                // Escape quotes in name to prevent HTML injection in onerror
-                const safeName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                return `<img src="${iconUrl}" class="avatar" style="object-fit: cover;" onerror="this.outerHTML='${getAvatar(safeName)}'">`;
+                const firstLetter = name.charAt(0).toUpperCase().replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `<img src="${iconUrl}" class="avatar" style="object-fit: cover;" onerror="this.onerror=null; this.outerHTML='<div class=\\'avatar\\' style=\\'background-color: #8e8e93;\\'>${firstLetter}</div>';">`;
             }
             return getAvatar(name);
         }
@@ -794,6 +801,11 @@
                 return;
             }
 
+            const reminder = document.createElement('div');
+            reminder.style.cssText = "background-color: rgba(255, 204, 0, 0.2); color: var(--text-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;";
+            reminder.innerText = t.deleteReminder;
+            container.appendChild(reminder);
+
             myProjects.forEach(project => {
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -917,6 +929,12 @@
                 accordion.classList.add('active');
             }
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        function closeBanner() {
+            const banner = document.getElementById('main-banner');
+            if (banner) banner.style.display = 'none';
+            localStorage.setItem('hideBanner', 'true');
         }
 
         function copyInviteLink(id) {
