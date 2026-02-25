@@ -612,6 +612,8 @@
                 const response = await fetch(`${API_BASE}/tasks/${userId}`);
                 const data = await response.json();
                 
+                const today = new Date().toISOString().split('T')[0];
+                
                 // Map backend data to frontend structure
                 myTests = data.to_test_today.map(app => ({
                     id: app.app_id,
@@ -619,7 +621,8 @@
                     package: app.package_name,
                     icon_url: app.icon_url,
                     google_group_url: app.google_group_url,
-                    status: 'pending' // Initial status before user clicks "Open Google Play"
+                    owner_username: app.owner_username || null,
+                    status: app.last_check_date === today ? 'done' : 'pending'
                 }));
                 
                 availableApps = data.available_apps || [];
@@ -721,6 +724,7 @@
                             <div class="card-title">${test.name}</div>
                             <div class="card-subtitle">${test.package}</div>
                         </div>
+                        ${test.owner_username ? `<a href="https://t.me/${test.owner_username}" target="_blank" style="margin-left: 8px; font-size: 20px; text-decoration: none; flex-shrink: 0;">✉️</a>` : ''}
                     </div>
                     <div id="actions-${test.id}">
                         ${actionsHtml}
