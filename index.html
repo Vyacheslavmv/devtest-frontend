@@ -423,8 +423,12 @@
                 <input type="text" id="app-name" class="form-input" placeholder="Super Task Tracker">
             </div>
             <div class="form-group">
-                <label class="form-label" id="t-packageName">Package Name</label>
-                <input type="text" id="app-package" class="form-input" placeholder="com.example.app">
+                <label class="form-label" id="t-packageName">Ссылка на Google Play</label>
+                <input type="text" id="app-package" class="form-input" placeholder="https://play.google.com/store/apps/details?id=com.example.app">
+            </div>
+            <div class="form-group">
+                <label class="form-label" id="t-googleGroup">Ссылка на Google Group (оставьте пустым для стандартной)</label>
+                <input type="url" id="app-group" class="form-input" placeholder="https://groups.google.com/g/my-app-testers">
             </div>
             <div class="form-group">
                 <label class="form-label" id="t-iconUrl">Ссылка на иконку (необязательно)</label>
@@ -470,7 +474,10 @@
                 noTesters: "Пока нет тестировщиков",
                 notOpenedYet: "Ещё не открывал",
                 appName: "Название приложения",
-                packageName: "Package Name",
+                packageName: "Ссылка на Google Play",
+                googleGroup: "Ссылка на Google Group (оставьте пустым для стандартной)",
+                joinGroup: "👥 1. Вступить в Google Group",
+                downloadPlay: "⬇️ 2. Скачать в Google Play",
                 iconUrl: "Ссылка на иконку (необязательно)",
                 save: "Сохранить",
                 emptyTests: "Inbox Zero!",
@@ -494,7 +501,10 @@
                 noTesters: "No testers yet",
                 notOpenedYet: "Not opened yet",
                 appName: "App Name",
-                packageName: "Package Name",
+                packageName: "Google Play Link",
+                googleGroup: "Google Group Link (leave empty for default)",
+                joinGroup: "👥 1. Join Google Group",
+                downloadPlay: "⬇️ 2. Download on Google Play",
                 iconUrl: "Icon URL (optional)",
                 save: "Save",
                 emptyTests: "Inbox Zero!",
@@ -519,6 +529,7 @@
             document.getElementById('t-modalTitle').innerText = t.addApp;
             document.getElementById('t-appName').innerText = t.appName;
             document.getElementById('t-packageName').innerText = t.packageName;
+            document.getElementById('t-googleGroup').innerText = t.googleGroup;
             document.getElementById('t-iconUrl').innerText = t.iconUrl;
             document.getElementById('t-save').innerText = t.save;
             
@@ -543,6 +554,7 @@
                     name: app.name,
                     package: app.package_name,
                     icon_url: app.icon_url,
+                    google_group_url: app.google_group_url,
                     status: 'pending' // Initial status before user clicks "Open Google Play"
                 }));
                 
@@ -562,6 +574,7 @@
                     name: project.name,
                     package: project.package_name,
                     icon_url: project.icon_url,
+                    google_group_url: project.google_group_url,
                     testers: project.testers || []
                 }));
                 
@@ -609,10 +622,16 @@
                 
                 let actionsHtml = '';
                 if (test.status === 'pending') {
+                    const groupUrl = test.google_group_url || 'https://groups.google.com/g/google-play-dev-test';
                     actionsHtml = `
-                        <button class="btn btn-primary" onclick="openPlay(${test.id}, '${test.package}')">
-                            ${t.openPlay}
-                        </button>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <a href="${groupUrl}" target="_blank" class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2); text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600;" onclick="if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">
+                                ${t.joinGroup}
+                            </a>
+                            <button class="btn btn-primary" onclick="openPlay(${test.id}, '${test.package}')">
+                                ${t.downloadPlay}
+                            </button>
+                        </div>
                     `;
                 } else if (test.status === 'opened') {
                     actionsHtml = `
@@ -810,19 +829,32 @@
             setTimeout(() => {
                 document.getElementById('app-name').value = '';
                 document.getElementById('app-package').value = '';
+                document.getElementById('app-group').value = '';
                 document.getElementById('app-icon').value = '';
             }, 300);
         }
 
         async function saveProject() {
             const nameInput = document.getElementById('app-name').value.trim();
-            const packageInput = document.getElementById('app-package').value.trim();
+            let packageInput = document.getElementById('app-package').value.trim();
+            const groupInput = document.getElementById('app-group').value.trim();
             const iconInput = document.getElementById('app-icon').value.trim();
 
             if (!nameInput || !packageInput) {
                 if (tg.showAlert) tg.showAlert(t.fillFields);
                 else alert(t.fillFields);
                 return;
+            }
+            
+            // Extract package name from URL if provided
+            try {
+                if (packageInput.includes('play.google.com')) {
+                    const url = new URL(packageInput);
+                    const idParam = url.searchParams.get('id');
+                    if (idParam) packageInput = idParam;
+                }
+            } catch (e) {
+                // Ignore URL parsing errors
             }
 
             const saveBtn = document.getElementById('t-save');
@@ -840,7 +872,8 @@
                         owner_id: userId,
                         name: nameInput,
                         package_name: packageInput,
-                        icon_url: iconInput || null
+                        icon_url: iconInput || null,
+                        google_group_url: groupInput || null
                     })
                 });
                 
