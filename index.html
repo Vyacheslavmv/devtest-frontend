@@ -349,6 +349,25 @@
 
         .form-input:focus { border-color: var(--link-color); }
 
+        .form-hint {
+            font-size: 13px;
+            color: var(--hint-color);
+            margin-bottom: 8px;
+            margin-top: -4px;
+            line-height: 1.4;
+        }
+
+        .copyable-email {
+            color: var(--link-color);
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .copyable-email:active {
+            opacity: 0.6;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -427,8 +446,9 @@
                 <input type="text" id="app-package" class="form-input" placeholder="https://play.google.com/store/apps/details?id=com.example.app">
             </div>
             <div class="form-group">
-                <label class="form-label" id="t-googleGroup">Ссылка на Google Group (оставьте пустым для стандартной)</label>
-                <input type="url" id="app-group" class="form-input" placeholder="https://groups.google.com/g/my-app-testers">
+                <label class="form-label" id="t-googleGroup">Ссылка на Google Group</label>
+                <div class="form-hint" id="t-groupHint">Оставьте пустым для стандартной. В Play Console добавьте тестером: <span class="copyable-email" onclick="copyEmail()">google-play-dev-test@googlegroups.com 📋</span></div>
+                <input type="url" id="app-group" class="form-input" placeholder="https://groups.google.com/g/google-play-dev-test">
             </div>
             <div class="form-group">
                 <label class="form-label" id="t-iconUrl">Ссылка на иконку (необязательно)</label>
@@ -475,7 +495,9 @@
                 notOpenedYet: "Ещё не открывал",
                 appName: "Название приложения",
                 packageName: "Ссылка на Google Play",
-                googleGroup: "Ссылка на Google Group (оставьте пустым для стандартной)",
+                googleGroup: "Ссылка на Google Group",
+                groupHint: "Оставьте пустым для стандартной. В Play Console добавьте тестером: <span class=\"copyable-email\" onclick=\"copyEmail()\">google-play-dev-test@googlegroups.com 📋</span>",
+                copied: "Email скопирован!",
                 joinGroup: "👥 1. Вступить в Google Group",
                 downloadPlay: "⬇️ 2. Скачать в Google Play",
                 iconUrl: "Ссылка на иконку (необязательно)",
@@ -502,7 +524,9 @@
                 notOpenedYet: "Not opened yet",
                 appName: "App Name",
                 packageName: "Google Play Link",
-                googleGroup: "Google Group Link (leave empty for default)",
+                googleGroup: "Google Group URL",
+                groupHint: "Leave empty for default. In Play Console, add tester: <span class=\"copyable-email\" onclick=\"copyEmail()\">google-play-dev-test@googlegroups.com 📋</span>",
+                copied: "Email copied!",
                 joinGroup: "👥 1. Join Google Group",
                 downloadPlay: "⬇️ 2. Download on Google Play",
                 iconUrl: "Icon URL (optional)",
@@ -530,6 +554,7 @@
             document.getElementById('t-appName').innerText = t.appName;
             document.getElementById('t-packageName').innerText = t.packageName;
             document.getElementById('t-googleGroup').innerText = t.googleGroup;
+            document.getElementById('t-groupHint').innerHTML = t.groupHint;
             document.getElementById('t-iconUrl').innerText = t.iconUrl;
             document.getElementById('t-save').innerText = t.save;
             
@@ -893,6 +918,16 @@
                 saveBtn.innerText = originalText;
                 saveBtn.disabled = false;
             }
+        }
+
+        function copyEmail() {
+            navigator.clipboard.writeText("google-play-dev-test@googlegroups.com").then(() => {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                if (tg.showAlert) tg.showAlert(t.copied);
+                else alert(t.copied);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
         }
     </script>
 </body>
