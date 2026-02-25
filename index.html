@@ -914,6 +914,7 @@
             } catch (error) {
                 console.error("Save project error:", error);
                 if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+                else alert("Network error. Please try again.");
             } finally {
                 saveBtn.innerText = originalText;
                 saveBtn.disabled = false;
@@ -932,6 +933,7 @@
     </script>
 </body>
 </html>
+
 
 
 
