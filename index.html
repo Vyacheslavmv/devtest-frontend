@@ -515,11 +515,11 @@
                 emptyTestsDesc: "Вы открыли все приложения на сегодня. Возвращайтесь завтра!",
                 emptyProjects: "У вас пока нет добавленных проектов.",
                 fillFields: "Пожалуйста, заполните все поля.",
-                bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.",
+                bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 20 тестеров в одном месте и находите новые приложения для взаимного теста.",
                 availableTitle: "Доступные для тестирования",
                 noAvailable: "Пока нет доступных приложений",
                 activeTesters: "Активных тестеров",
-                contactOwner: "Написать Разработчику",
+                contactOwner: "Написать владельцу",
                 takeToTest: "Взять на тест",
                 inviteLink: "Инвайт-ссылка",
                 deleteProject: "Завершить (Удалить)",
@@ -555,7 +555,7 @@
                 emptyTestsDesc: "You've checked all apps for today. Come back tomorrow!",
                 emptyProjects: "You have no projects yet.",
                 fillFields: "Please fill in all fields.",
-                bannerText: "Get rid of chat chaos! Control daily check-ins for 12 testers in one place and find new apps for mutual testing.",
+                bannerText: "Get rid of chat chaos! Control daily check-ins for 20 testers in one place and find new apps for mutual testing.",
                 availableTitle: "Available for testing",
                 noAvailable: "No apps available yet",
                 activeTesters: "Active testers",
@@ -629,7 +629,8 @@
                         package: app.package_name,
                         icon_url: app.icon_url,
                         google_group_url: app.google_group_url,
-                        status: status
+                        status: status,
+                        owner_username: app.owner_username
                     };
                 });
                 
@@ -730,6 +731,11 @@
                     `;
                 }
 
+                let ownerBtnHtml = '';
+                if (test.owner_username) {
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="tg.openTelegramLink('https://t.me/${test.owner_username}')">✉️</button>`;
+                }
+
                 card.innerHTML = `
                     <div class="card-header">
                         ${renderIcon(test.name, test.icon_url)}
@@ -737,6 +743,7 @@
                             <div class="card-title">${test.name}</div>
                             <div class="card-subtitle">${test.package}</div>
                         </div>
+                        ${ownerBtnHtml}
                     </div>
                     <div id="actions-${test.id}">
                         ${actionsHtml}
@@ -793,7 +800,7 @@
                             <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openTelegramLink('https://t.me/${ownerUsername}')">
                                 ✉️ ${t.contactOwner}
                             </button>
-                            <button class="btn btn-primary" style="flex: 1;" onclick="tg.openTelegramLink('https://t.me/Android12TestersBot?start=app_${app.app_id}')">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="takeAppToTest(${app.app_id})">
                                 ${t.takeToTest}
                             </button>
                         </div>
@@ -871,6 +878,32 @@
         }
 
         // --- Actions ---
+        async function takeAppToTest(appId) {
+            try {
+                const response = await fetch(`${API_BASE}/take_test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tester_id: userId,
+                        app_id: appId
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    loadTasks();
+                } else {
+                    if (tg.showAlert) tg.showAlert("Error taking test.");
+                }
+            } catch (error) {
+                console.error("Take test error:", error);
+                if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+            }
+        }
+
         function openPlay(id, pkg) {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             
@@ -1076,7 +1109,6 @@
     </script>
 </body>
 </html>
-
 
 
 
