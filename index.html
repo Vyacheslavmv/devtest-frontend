@@ -612,15 +612,26 @@
                 const response = await fetch(`${API_BASE}/tasks/${userId}`);
                 const data = await response.json();
                 
+                const today = getLocalDate();
+                
                 // Map backend data to frontend structure
-                myTests = data.to_test_today.map(app => ({
-                    id: app.app_id,
-                    name: app.name,
-                    package: app.package_name,
-                    icon_url: app.icon_url,
-                    google_group_url: app.google_group_url,
-                    status: 'pending' // Initial status before user clicks "Open Google Play"
-                }));
+                myTests = data.to_test_today.map(app => {
+                    let status = 'new';
+                    if (app.last_check_date === today) {
+                        status = 'done';
+                    } else if (app.last_check_date && app.last_check_date < today) {
+                        status = 'daily';
+                    }
+                    
+                    return {
+                        id: app.app_id,
+                        name: app.name,
+                        package: app.package_name,
+                        icon_url: app.icon_url,
+                        google_group_url: app.google_group_url,
+                        status: status
+                    };
+                });
                 
                 availableApps = data.available_apps || [];
                 
@@ -651,6 +662,8 @@
         }
 
         // --- Helpers ---
+        const getLocalDate = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
         function getAvatar(name) {
             const colors = ['#f5625d', '#f5b55d', '#5df562', '#5dcbf5', '#5d62f5', '#cb5df5'];
             let hash = 0;
@@ -686,7 +699,7 @@
                 card.id = `test-card-${test.id}`;
                 
                 let actionsHtml = '';
-                if (test.status === 'pending') {
+                if (test.status === 'new') {
                     const groupUrl = test.google_group_url || 'https://groups.google.com/g/google-play-dev-test';
                     actionsHtml = `
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -698,10 +711,13 @@
                             </button>
                         </div>
                     `;
-                } else if (test.status === 'opened') {
+                } else if (test.status === 'daily' || test.status === 'opened') {
                     actionsHtml = `
                         <div class="action-row">
-                            <button class="btn btn-success" style="flex-grow: 1;" onclick="confirmStart(${test.id})">
+                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openLink('https://play.google.com/store/apps/details?id=${test.package}')">
+                                📱 Открыть
+                            </button>
+                            <button class="btn btn-success" style="flex: 2;" onclick="confirmStart(${test.id})">
                                 ${t.confirmStart}
                             </button>
                         </div>
@@ -884,7 +900,8 @@
                         },
                         body: JSON.stringify({
                             tester_id: userId,
-                            app_id: id
+                            app_id: id,
+                            local_date: getLocalDate()
                         })
                     });
                     
@@ -1059,7 +1076,6 @@
     </script>
 </body>
 </html>
-
 
 
 
