@@ -453,6 +453,7 @@
             <div class="form-group">
                 <label class="form-label" id="t-packageName">Ссылка на Google Play</label>
                 <input type="text" id="app-package" class="form-input" placeholder="https://play.google.com/store/apps/details?id=com.example.app">
+                <div id="package-error" style="color: #ff3b30; font-size: 13px; margin-top: 8px; display: none;"></div>
             </div>
             <div class="form-group">
                 <label class="form-label" id="t-googleGroup">Ссылка на Google Group</label>
@@ -544,7 +545,8 @@
                 deleteModalTitle: "Завершить проект?",
                 deleteMessageLabel: "Напишите пару слов благодарности тестерам (необязательно)...",
                 cancelDelete: "Отмена",
-                confirmDeleteBtn: "Завершить и удалить"
+                confirmDeleteBtn: "Завершить и удалить",
+                invalidPlayLink: "❌ Неверный формат. Ссылка должна выглядеть так: https://play.google.com/store/apps/details?id=com.example.app"
             },
             en: {
                 tabTests: "My Tests",
@@ -588,7 +590,8 @@
                 deleteModalTitle: "Finish project?",
                 deleteMessageLabel: "Write a few words of gratitude to the testers (optional)...",
                 cancelDelete: "Cancel",
-                confirmDeleteBtn: "Finish and delete"
+                confirmDeleteBtn: "Finish and delete",
+                invalidPlayLink: "❌ Invalid format. Link should look like: https://play.google.com/store/apps/details?id=com.example.app"
             }
         };
 
@@ -1093,14 +1096,23 @@
                 document.getElementById('app-package').value = '';
                 document.getElementById('app-group').value = '';
                 document.getElementById('app-icon').value = '';
+                document.getElementById('package-error').style.display = 'none';
             }, 300);
         }
 
         async function saveProject() {
+            document.getElementById('package-error').style.display = 'none';
+
             const nameInput = document.getElementById('app-name').value.trim();
             let packageInput = document.getElementById('app-package').value.trim();
             const groupInput = document.getElementById('app-group').value.trim();
             const iconInput = document.getElementById('app-icon').value.trim();
+
+            if (!packageInput.includes('play.google.com/store/apps/details?id=')) {
+                document.getElementById('package-error').innerText = t.invalidPlayLink;
+                document.getElementById('package-error').style.display = 'block';
+                return;
+            }
 
             if (!nameInput || !packageInput) {
                 if (tg.showAlert) tg.showAlert(t.fillFields);
