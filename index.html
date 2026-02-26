@@ -760,7 +760,7 @@
 
                 let ownerBtnHtml = '';
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="tg.openTelegramLink('https://t.me/${test.owner_username}')">✉️</button>`;
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="tg.openTelegramLink('https://t.me/${test.owner_username}')">💬</button>`;
                 }
 
                 card.innerHTML = `
@@ -825,7 +825,7 @@
                         </div>
                         <div class="action-row">
                             <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openTelegramLink('https://t.me/${ownerUsername}')">
-                                ✉️ ${t.contactOwner}
+                                💬 ${t.contactOwner}
                             </button>
                             <button class="btn btn-primary" style="flex: 1;" onclick="takeAppToTest(${app.app_id})">
                                 ${t.takeToTest}
