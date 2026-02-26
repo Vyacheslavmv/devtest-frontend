@@ -467,6 +467,21 @@
         </div>
     </div>
 
+    <!-- Delete Project Modal -->
+    <div id="delete-modal" class="modal-overlay" onclick="closeDeleteModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="t-deleteModalTitle">Завершить проект?</h3>
+            <div class="form-group">
+                <label class="form-label" id="t-deleteMessageLabel">Напишите пару слов благодарности тестерам (необязательно)...</label>
+                <textarea id="delete-message" class="form-input" rows="3" placeholder="Спасибо за помощь!"></textarea>
+            </div>
+            <div class="action-row">
+                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="closeDeleteModal()" id="t-cancelDelete">Отмена</button>
+                <button class="btn" style="flex: 1; background-color: rgba(255, 59, 48, 0.1); color: #ff3b30;" onclick="confirmDeleteProject()" id="t-confirmDeleteBtn">Завершить и удалить</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Telegram Web App
         const tg = window.Telegram.WebApp;
@@ -525,7 +540,11 @@
                 deleteProject: "Завершить (Удалить)",
                 inviteCopied: "Ссылка скопирована! Отправьте её для взаимного теста.",
                 confirmDelete: "Вы уверены, что хотите удалить этот проект? Все данные о тестировщиках будут потеряны.",
-                deleteReminder: "⚠️ Пожалуйста, удаляйте проекты после успешного релиза в Google Play, чтобы не тратить время других тестеров впустую!"
+                deleteReminder: "⚠️ Пожалуйста, удаляйте проекты после успешного релиза в Google Play, чтобы не тратить время других тестеров впустую!",
+                deleteModalTitle: "Завершить проект?",
+                deleteMessageLabel: "Напишите пару слов благодарности тестерам (необязательно)...",
+                cancelDelete: "Отмена",
+                confirmDeleteBtn: "Завершить и удалить"
             },
             en: {
                 tabTests: "My Tests",
@@ -565,7 +584,11 @@
                 deleteProject: "Finish (Delete)",
                 inviteCopied: "Link copied! Send it for mutual testing.",
                 confirmDelete: "Are you sure you want to delete this project? All tester data will be lost.",
-                deleteReminder: "⚠️ Please delete your projects after a successful release so as not to waste other testers' time!"
+                deleteReminder: "⚠️ Please delete your projects after a successful release so as not to waste other testers' time!",
+                deleteModalTitle: "Finish project?",
+                deleteMessageLabel: "Write a few words of gratitude to the testers (optional)...",
+                cancelDelete: "Cancel",
+                confirmDeleteBtn: "Finish and delete"
             }
         };
 
@@ -595,6 +618,10 @@
             document.getElementById('t-save').innerText = t.save;
             document.getElementById('t-bannerText').innerText = t.bannerText;
             document.getElementById('t-availableTitle').innerText = t.availableTitle;
+            document.getElementById('t-deleteModalTitle').innerText = t.deleteModalTitle;
+            document.getElementById('t-deleteMessageLabel').innerText = t.deleteMessageLabel;
+            document.getElementById('t-cancelDelete').innerText = t.cancelDelete;
+            document.getElementById('t-confirmDeleteBtn').innerText = t.confirmDeleteBtn;
             
             // Load real data from backend
             loadTasks();
@@ -868,7 +895,7 @@
                         <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="copyInviteLink(${project.id})">
                             🔗 ${t.inviteLink}
                         </button>
-                        <button class="btn" style="flex: 1; background-color: rgba(255, 59, 48, 0.1); color: #ff3b30;" onclick="deleteProject(${project.id})">
+                        <button class="btn" style="flex: 1; background-color: rgba(255, 59, 48, 0.1); color: #ff3b30;" onclick="openDeleteModal(${project.id})">
                             🗑 ${t.deleteProject}
                         </button>
                     </div>
@@ -996,24 +1023,58 @@
             }).catch(err => console.error('Copy failed', err));
         }
 
-        async function deleteProject(id) {
-            if (confirm(t.confirmDelete)) {
-                try {
-                    const response = await fetch(`${API_BASE}/projects/${id}`, {
-                        method: 'DELETE'
-                    });
-                    const result = await response.json();
-                    if (result.status === 'success') {
-                        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                        loadProjects();
-                    } else {
-                        if (tg.showAlert) tg.showAlert("Error deleting project.");
-                    }
-                } catch (error) {
-                    console.error("Delete project error:", error);
-                    if (tg.showAlert) tg.showAlert("Network error. Please try again.");
-                    else alert("Network error. Please try again.");
+        let projectToDelete = null;
+
+        function openDeleteModal(id) {
+            projectToDelete = id;
+            document.getElementById('delete-modal').classList.add('active');
+            document.getElementById('delete-message').focus();
+        }
+
+        function closeDeleteModal(event) {
+            if (event && event.target !== document.getElementById('delete-modal')) return;
+            document.getElementById('delete-modal').classList.remove('active');
+            
+            setTimeout(() => {
+                document.getElementById('delete-message').value = '';
+                projectToDelete = null;
+            }, 300);
+        }
+
+        async function confirmDeleteProject() {
+            if (!projectToDelete) return;
+            
+            const message = document.getElementById('delete-message').value.trim();
+            const id = projectToDelete;
+            
+            const btn = document.getElementById('t-confirmDeleteBtn');
+            const originalText = btn.innerText;
+            btn.innerText = '...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE}/projects/${id}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    closeDeleteModal();
+                    loadProjects();
+                } else {
+                    if (tg.showAlert) tg.showAlert("Error deleting project.");
                 }
+            } catch (error) {
+                console.error("Delete project error:", error);
+                if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+                else alert("Network error. Please try again.");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
         }
 
