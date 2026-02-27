@@ -900,6 +900,16 @@
             reminder.innerText = t.deleteReminder;
             container.appendChild(reminder);
 
+            const today = getLocalDate();
+            const todayDate = new Date(today);
+
+            function getDaysDiff(dateStr) {
+                if (!dateStr) return null;
+                const checkDate = new Date(dateStr);
+                const diffTime = Math.abs(todayDate - checkDate);
+                return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            }
+
             myProjects.forEach(project => {
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -908,15 +918,29 @@
                 if (project.testers && project.testers.length > 0) {
                     testersHtml = '<ul class="tester-list">';
                     project.testers.forEach(tester => {
-                        const nameHtml = tester.username 
-                            ? `<a href="https://t.me/${tester.username}" target="_blank" class="tester-link">@${tester.username}</a>`
-                            : `<span class="tester-id">ID: ${tester.tester_id}</span>`;
+                        let nameHtml = '';
+                        if (tester.username) {
+                            const cleanUsername = tester.username.replace('@', '');
+                            nameHtml = `<a href="tg://resolve?domain=${cleanUsername}" class="tester-link">@${cleanUsername}</a>`;
+                        } else {
+                            nameHtml = `<span class="tester-id">ID: ${tester.tester_id}</span>`;
+                        }
                         
-                        const dateHtml = tester.last_check_date 
-                            ? `<span class="tester-date">${tester.last_check_date}</span>`
-                            : `<span class="tester-date empty">${t.notOpenedYet}</span>`;
+                        let statusHtml = '';
+                        if (!tester.last_check_date) {
+                            statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${lang === 'ru' ? 'Ещё не открывал' : 'Not opened yet'}</span>`;
+                        } else if (tester.last_check_date === today) {
+                            statusHtml = `<span style="color: #34c759; font-weight: 500; font-size: 13px;">🟢 ${lang === 'ru' ? 'Сегодня' : 'Today'}</span>`;
+                        } else {
+                            const daysDiff = getDaysDiff(tester.last_check_date);
+                            if (daysDiff === 1) {
+                                statusHtml = `<span style="color: #ffcc00; font-weight: 500; font-size: 13px;">🟡 ${lang === 'ru' ? 'Вчера' : 'Yesterday'}</span>`;
+                            } else {
+                                statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${daysDiff} ${lang === 'ru' ? 'дней назад' : 'days ago'}</span>`;
+                            }
+                        }
                             
-                        testersHtml += `<li>${nameHtml} ${dateHtml}</li>`;
+                        testersHtml += `<li style="margin-bottom: 8px;">${nameHtml} ${statusHtml}</li>`;
                     });
                     testersHtml += '</ul>';
                 } else {
