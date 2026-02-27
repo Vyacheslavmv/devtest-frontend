@@ -536,7 +536,7 @@
                 save: "Сохранить",
                 emptyTests: "Inbox Zero!",
                 emptyTestsDesc: "Вы открыли все приложения на сегодня. Возвращайтесь завтра!",
-                emptyProjects: "У вас пока нет добавленных проектов.",
+                emptyProjects: "Добавьте свое первое приложение и отправьте инвайт-ссылку тестерам. Здесь появится сводка их ежедневной активности.",
                 fillFields: "Пожалуйста, заполните все поля.",
                 bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 20 тестеров в одном месте и находите новые приложения для взаимного теста.",
                 availableTitle: "Доступные для тестирования",
@@ -585,7 +585,7 @@
                 save: "Save",
                 emptyTests: "Inbox Zero!",
                 emptyTestsDesc: "You've checked all apps for today. Come back tomorrow!",
-                emptyProjects: "You have no projects yet.",
+                emptyProjects: "Add your first app and send an invite link to testers. A summary of their daily activity will appear here.",
                 fillFields: "Please fill in all fields.",
                 bannerText: "Get rid of chat chaos! Control daily check-ins for 20 testers in one place and find new apps for mutual testing.",
                 availableTitle: "Available for testing",
@@ -764,10 +764,10 @@
                 } else if (test.status === 'daily' || test.status === 'opened') {
                     actionsHtml = `
                         <div class="action-row">
-                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openLink('https://play.google.com/store/apps/details?id=${test.package}')">
+                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="startTimer(${test.id}, '${test.package}')">
                                 📱 Открыть
                             </button>
-                            <button class="btn btn-success" style="flex: 2;" onclick="confirmStart(${test.id})">
+                            <button id="btn-confirm-${test.id}" class="btn" style="flex: 2; background-color: rgba(142, 142, 147, 0.2); color: var(--hint-color); cursor: not-allowed;" disabled>
                                 ${t.confirmStart}
                             </button>
                         </div>
@@ -949,6 +949,35 @@
         }
 
         // --- Actions ---
+        function startTimer(id, pkg) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            
+            // Open Google Play
+            tg.openLink(`https://play.google.com/store/apps/details?id=${pkg}`);
+            
+            const btn = document.getElementById(`btn-confirm-${id}`);
+            if (!btn || !btn.disabled) return; // Already active or not found
+            
+            let timeLeft = 15;
+            btn.innerText = `⏳ Осталось ${timeLeft} сек...`;
+            
+            const timerId = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    btn.disabled = false;
+                    btn.style.backgroundColor = 'var(--success-color)';
+                    btn.style.color = '#fff';
+                    btn.style.cursor = 'pointer';
+                    btn.innerText = t.confirmStart;
+                    btn.onclick = () => confirmStart(id);
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    btn.innerText = `⏳ Осталось ${timeLeft} сек...`;
+                }
+            }, 1000);
+        }
+
         async function takeAppToTest(appId) {
             try {
                 const response = await fetch(`${API_BASE}/take_test`, {
