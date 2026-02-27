@@ -921,7 +921,7 @@
                         let nameHtml = '';
                         if (tester.username) {
                             const cleanUsername = tester.username.replace('@', '');
-                            nameHtml = `<a href="tg://resolve?domain=${cleanUsername}" class="tester-link">@${cleanUsername}</a>`;
+                            nameHtml = `<a href="javascript:void(0);" onclick="tg.openTelegramLink('https://t.me/${cleanUsername}')" class="tester-link">@${cleanUsername}</a>`;
                         } else {
                             nameHtml = `<span class="tester-id">ID: ${tester.tester_id}</span>`;
                         }
@@ -1279,7 +1279,6 @@
     </script>
 </body>
 </html>
-
 
 
 
