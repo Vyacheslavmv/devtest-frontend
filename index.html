@@ -919,16 +919,19 @@
                     testersHtml = '<ul class="tester-list">';
                     project.testers.forEach(tester => {
                         let nameHtml = '';
+                        let cleanUsername = '';
                         if (tester.username) {
-                            const cleanUsername = tester.username.replace('@', '');
+                            cleanUsername = tester.username.replace('@', '');
                             nameHtml = `<a href="javascript:void(0);" onclick="tg.openTelegramLink('https://t.me/${cleanUsername}')" class="tester-link">@${cleanUsername}</a>`;
                         } else {
                             nameHtml = `<span class="tester-id">ID: ${tester.tester_id}</span>`;
                         }
                         
                         let statusHtml = '';
+                        let showBell = false;
                         if (!tester.last_check_date) {
                             statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${lang === 'ru' ? 'Ещё не открывал' : 'Not opened yet'}</span>`;
+                            showBell = true;
                         } else if (tester.last_check_date === today) {
                             statusHtml = `<span style="color: #34c759; font-weight: 500; font-size: 13px;">🟢 ${lang === 'ru' ? 'Сегодня' : 'Today'}</span>`;
                         } else {
@@ -937,10 +940,30 @@
                                 statusHtml = `<span style="color: #ffcc00; font-weight: 500; font-size: 13px;">🟡 ${lang === 'ru' ? 'Вчера' : 'Yesterday'}</span>`;
                             } else {
                                 statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${daysDiff} ${lang === 'ru' ? 'дней назад' : 'days ago'}</span>`;
+                                showBell = true;
                             }
                         }
+                        
+                        let bellHtml = '';
+                        if (showBell && cleanUsername) {
+                            const msg = `Привет! 👀 Кажется, ты затерялся в матрице и забыл про ежедневный тест моего приложения «${project.name}»! Забегай в бота сделать спасительный чекин, пока Google нас не покарал 😅: https://t.me/Android12TestersBot`;
+                            bellHtml = `<a href="javascript:void(0);" onclick="tg.openTelegramLink('https://t.me/${cleanUsername}?text=${encodeURIComponent(msg)}')" style="text-decoration: none; font-size: 16px;">🔔</a>`;
+                        }
+                        
+                        const trashHtml = `<span onclick="deleteTester(${project.id}, ${tester.tester_id}, '${cleanUsername || tester.tester_id}')" style="cursor: pointer; font-size: 16px;">🗑️</span>`;
                             
-                        testersHtml += `<li style="margin-bottom: 8px;">${nameHtml} ${statusHtml}</li>`;
+                        testersHtml += `
+                            <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    ${nameHtml}
+                                    ${bellHtml}
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    ${trashHtml}
+                                    ${statusHtml}
+                                </div>
+                            </li>
+                        `;
                     });
                     testersHtml += '</ul>';
                 } else {
@@ -1118,6 +1141,27 @@
                 if (tg.showAlert) tg.showAlert(t.inviteCopied);
                 else alert(t.inviteCopied);
             }).catch(err => console.error('Copy failed', err));
+        }
+
+        async function deleteTester(appId, testerId, testerName) {
+            if (!window.confirm(`Удалить тестера @${testerName} из этого проекта?`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/projects/${appId}/testers/${testerId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (result.status === 'ok') {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    loadProjects(); // Reload the projects list to reflect the deletion
+                } else {
+                    if (tg.showAlert) tg.showAlert("Error deleting tester.");
+                }
+            } catch (error) {
+                console.error("Delete tester error:", error);
+                if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+                else alert("Network error. Please try again.");
+            }
         }
 
         let projectToDelete = null;
