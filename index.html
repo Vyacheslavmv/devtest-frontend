@@ -410,10 +410,12 @@
             </div>
         </div>
 
-        <h3 id="t-availableTitle" style="margin-top: 24px; margin-bottom: 12px;">Доступные для тестирования</h3>
-        <div id="available-list">
-            <!-- Available apps will be injected here -->
-        </div>
+        <details id="available-details" style="margin-top: 16px;">
+            <summary id="t-availableSummary" style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px;">🛒 Доступные для тестирования (Развернуть)</summary>
+            <div id="available-list" style="margin-top: 12px;">
+                <!-- Available apps will be injected here -->
+            </div>
+        </details>
     </div>
 
     <!-- TAB 2: Мои проекты -->
@@ -540,6 +542,8 @@
                 fillFields: "Пожалуйста, заполните все поля.",
                 bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.",
                 availableTitle: "Доступные для тестирования",
+                availableSummary: "Доступные для тестирования (Развернуть)",
+                loadingAvailable: "Загрузка витрины...",
                 noAvailable: "Пока нет доступных приложений",
                 activeTesters: "Активных тестеров",
                 contactOwner: "Написать владельцу",
@@ -589,6 +593,8 @@
                 fillFields: "Please fill in all fields.",
                 bannerText: "Get rid of chat chaos! Control daily check-ins for 12 testers in one place and find new apps for mutual testing.",
                 availableTitle: "Available for testing",
+                availableSummary: "Available for testing (Expand)",
+                loadingAvailable: "Loading showcase...",
                 noAvailable: "No apps available yet",
                 activeTesters: "Active testers",
                 contactOwner: "Contact owner",
@@ -635,7 +641,7 @@
             document.getElementById('t-iconUrl').innerText = t.iconUrl;
             document.getElementById('t-save').innerText = t.save;
             document.getElementById('t-bannerText').innerText = t.bannerText;
-            document.getElementById('t-availableTitle').innerText = t.availableTitle;
+            document.getElementById('t-availableSummary').innerText = `🛒 ${t.availableSummary}`;
             document.getElementById('t-deleteModalTitle').innerText = t.deleteModalTitle;
             document.getElementById('t-deleteMessageLabel').innerText = t.deleteMessageLabel;
             document.getElementById('t-cancelDelete').innerText = t.cancelDelete;
@@ -644,15 +650,23 @@
             document.getElementById('t-instructions').innerText = t.instructions;
             document.getElementById('app-instructions').placeholder = t.instPlaceholder;
             
+            const availableDetails = document.getElementById('available-details');
+            if (availableDetails) {
+                availableDetails.addEventListener('toggle', () => {
+                    if (availableDetails.open) loadAvailableApps();
+                });
+            }
+
             // Load real data from backend
-            loadTasks();
-            loadProjects();
+            loadDashboard();
         });
 
         // --- State ---
         let myTests = [];
         let myProjects = [];
         let availableApps = [];
+        let availableAppsLoaded = false;
+        let availableAppsLoading = false;
         let isTimerRunning = false;
 
         // --- API Calls ---
@@ -692,8 +706,6 @@
                     };
                 });
                 
-                availableApps = data.available_apps || [];
-                
                 renderTests();
             } catch (error) {
                 console.error("Error loading tasks:", error);
@@ -717,6 +729,30 @@
                 renderProjects();
             } catch (error) {
                 console.error("Error loading projects:", error);
+            }
+        }
+
+        async function loadDashboard() {
+            await Promise.all([loadTasks(), loadProjects()]);
+            const globalLoader = document.getElementById('global-loader');
+            if (globalLoader) globalLoader.style.display = 'none';
+        }
+
+        async function loadAvailableApps() {
+            if (availableAppsLoaded || availableAppsLoading) return;
+            availableAppsLoading = true;
+            renderAvailableApps();
+            try {
+                const response = await fetch(`${API_BASE}/projects/available`);
+                const data = await response.json();
+                availableApps = Array.isArray(data) ? data : (data.available_apps || []);
+            } catch (error) {
+                console.error("Error loading available apps:", error);
+                availableApps = [];
+            } finally {
+                availableAppsLoading = false;
+                availableAppsLoaded = true;
+                renderAvailableApps();
             }
         }
 
@@ -762,16 +798,23 @@
                     const groupUrl = test.google_group_url || 'https://groups.google.com/g/google-play-dev-test';
                     actionsHtml = `
                         <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div id="new-start-box-${test.id}" style="display: flex; flex-direction: column; gap: 8px;">
                             <a href="${groupUrl}" target="_blank" class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2); text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600;" onclick="if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">
                                 ${t.joinGroup}
                             </a>
-                            <div class="action-row">
-                                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openPlay(${test.id}, '${test.package}')">
+                                <button class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="handleFirstDownload(${test.id}, '${test.package}')">
                                     ${t.downloadPlay}
+                                </button>
+                            </div>
+                            <div id="new-confirm-box-${test.id}" style="display: none;">
+                                <div class="action-row">
+                                <button class="btn btn-secondary" style="flex: 1; display: none; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openPlay(${test.id}, '${test.package}')">
+                                    📱 Открыть
                                 </button>
                                 <button id="btn-confirm-${test.id}" class="btn btn-success" style="flex: 1;" onclick="confirmStart(${test.id})">
                                     ${t.confirmStart}
                                 </button>
+                            </div>
                             </div>
                         </div>
                     `;
@@ -851,9 +894,23 @@
             }
 
             // Render Available Apps
+            renderAvailableApps();
+        }
+
+        function renderAvailableApps() {
             const availableList = document.getElementById('available-list');
+            if (!availableList) return;
             availableList.innerHTML = '';
-            
+
+            if (availableAppsLoading) {
+                availableList.innerHTML = `<p class="no-testers" style="text-align: center; margin-top: 16px;">${t.loadingAvailable}</p>`;
+                return;
+            }
+
+            if (!availableAppsLoaded) {
+                return;
+            }
+
             if (availableApps.length === 0) {
                 availableList.innerHTML = `<p class="no-testers" id="t-noAvailable" style="text-align: center; margin-top: 16px;">${t.noAvailable}</p>`;
             } else {
@@ -1091,6 +1148,24 @@
             }
         }
 
+        function handleFirstDownload(id, pkg) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            tg.openLink(`https://play.google.com/store/apps/details?id=${pkg}`);
+            setTimeout(() => {
+                const startBox = document.getElementById(`new-start-box-${id}`);
+                const confirmBox = document.getElementById(`new-confirm-box-${id}`);
+                const btn = document.getElementById(`btn-confirm-${id}`);
+                if (startBox) startBox.style.display = 'none';
+                if (confirmBox) confirmBox.style.display = 'block';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.backgroundColor = 'var(--success-color)';
+                    btn.style.color = '#fff';
+                    btn.style.cursor = 'pointer';
+                }
+            }, 1000);
+        }
+
         async function confirmStart(id) {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             
@@ -1115,8 +1190,13 @@
                     
                     if (result.status === 'success') {
                         setTimeout(() => {
-                            // Reload tasks from server to reflect the checkin
-                            loadTasks();
+                            card.style.display = 'none';
+                            const doneCountEl = document.getElementById('done-count');
+                            if (doneCountEl) {
+                                const current = parseInt(doneCountEl.innerText || '0', 10);
+                                doneCountEl.innerText = String(current + 1);
+                            }
+                            if (tg.showAlert) tg.showAlert('Успешно!');
                         }, 400);
                     } else {
                         card.classList.remove('removing');
