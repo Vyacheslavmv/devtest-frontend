@@ -534,6 +534,9 @@
                 copied: "Email скопирован!",
                 joinGroup: "👥 1. Вступить в Google Group",
                 downloadPlay: "⬇️ 2. Скачать в Google Play",
+                openApp: "📱 Открыть",
+                showcaseLoading: "Загрузка витрины...",
+                successAlert: "Успешно!",
                 iconUrl: "Ссылка на иконку (необязательно)",
                 save: "Сохранить",
                 emptyTests: "Inbox Zero!",
@@ -583,6 +586,9 @@
                 copied: "Email copied!",
                 joinGroup: "👥 1. Join Google Group",
                 downloadPlay: "⬇️ 2. Download on Google Play",
+                openApp: "📱 Open",
+                showcaseLoading: "Loading showcase...",
+                successAlert: "Success!",
                 iconUrl: "Icon URL (optional)",
                 save: "Save",
                 emptyTests: "Inbox Zero!",
@@ -613,6 +619,7 @@
         };
 
         const t = dict[lang];
+        const FIRST_DOWNLOAD_REVEAL_DELAY = 1000;
 
         // Apply translations to static UI
         document.addEventListener('DOMContentLoaded', () => {
@@ -743,7 +750,7 @@
             if (availableAppsLoaded || availableAppsLoading) return;
             const availableList = document.getElementById('available-list');
             if (availableList) {
-                availableList.innerHTML = `<p class="no-testers" style="text-align: center; margin-top: 16px;">Загрузка витрины...</p>`;
+                availableList.innerHTML = `<p style="text-align: center; margin-top: 16px; color: var(--hint-color);">${t.showcaseLoading}</p>`;
             }
 
             availableAppsLoading = true;
@@ -813,7 +820,7 @@
                             <div id="new-confirm-box-${test.id}" style="display: none;">
                                 <div class="action-row">
                                     <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openPlay(${test.id}, '${test.package}')">
-                                        📱 Открыть
+                                        ${t.openApp}
                                     </button>
                                     <button id="btn-confirm-${test.id}" class="btn btn-success" style="flex: 1;" onclick="confirmStart(${test.id})">
                                         ${t.confirmStart}
@@ -1147,7 +1154,7 @@
                 const confirmBox = document.getElementById(`new-confirm-box-${id}`);
                 if (downloadBox) downloadBox.style.display = 'none';
                 if (confirmBox) confirmBox.style.display = 'block';
-            }, 1000);
+            }, FIRST_DOWNLOAD_REVEAL_DELAY);
         }
 
         async function confirmStart(id) {
@@ -1179,9 +1186,10 @@
                             if (doneCountEl) {
                                 const nextCount = (parseInt(doneCountEl.innerText || '0', 10) || 0) + 1;
                                 doneCountEl.innerText = String(nextCount);
-                                document.getElementById('done-section').style.display = 'block';
+                                const doneSectionEl = document.getElementById('done-section');
+                                if (doneSectionEl) doneSectionEl.style.display = 'block';
                             }
-                            if (tg.showAlert) tg.showAlert('Успешно!');
+                            if (tg.showAlert) tg.showAlert(t.successAlert);
                         }, 400);
                     } else {
                         card.classList.remove('removing');
