@@ -557,7 +557,7 @@
                 optionalSettings: "⚙️ Дополнительные настройки (необязательно)",
                 instructions: "Пожелания к тесту / Правила скриншотов",
                 instPlaceholder: "Например: Жду скриншот запуска раз в 3 дня в личку",
-                devInfo: "📌 Доп. информация от разработчика"
+                devInfo: "Доп. информация от разработчика 📌"
             },
             en: {
                 tabTests: "My Tests",
@@ -606,7 +606,7 @@
                 optionalSettings: "⚙️ Advanced settings (optional)",
                 instructions: "Test wishes / Screenshot rules",
                 instPlaceholder: "E.g.: Send a screenshot every 3 days in DM",
-                devInfo: "📌 Additional info from developer"
+                devInfo: "Additional info from developer 📌"
             }
         };
 
@@ -653,6 +653,7 @@
         let myTests = [];
         let myProjects = [];
         let availableApps = [];
+        let isTimerRunning = false;
 
         // --- API Calls ---
         async function loadTasks() {
@@ -669,6 +670,14 @@
                         status = 'done';
                     } else if (app.last_check_date && app.last_check_date < today) {
                         status = 'daily';
+                    } else if (app.last_check_date === null) {
+                        status = 'new';
+                    }
+                    
+                    // Preserve 'opened' status if it exists in current state
+                    const existingTest = myTests.find(t => t.id === app.app_id);
+                    if (existingTest && existingTest.status === 'opened' && status !== 'done') {
+                        status = 'opened';
                     }
                     
                     return {
@@ -756,9 +765,14 @@
                             <a href="${groupUrl}" target="_blank" class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2); text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600;" onclick="if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">
                                 ${t.joinGroup}
                             </a>
-                            <button class="btn btn-primary" onclick="openPlay(${test.id}, '${test.package}')">
-                                ${t.downloadPlay}
-                            </button>
+                            <div class="action-row">
+                                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openPlay(${test.id}, '${test.package}')">
+                                    ${t.downloadPlay}
+                                </button>
+                                <button id="btn-confirm-${test.id}" class="btn btn-success" style="flex: 1;" onclick="confirmStart(${test.id})">
+                                    ${t.confirmStart}
+                                </button>
+                            </div>
                         </div>
                     `;
                 } else if (test.status === 'daily' || test.status === 'opened') {
@@ -795,7 +809,7 @@
                     `;
                 }
 
-                card.innerHTML = `
+                let cardContent = `
                     <div class="card-header">
                         ${renderIcon(test.name, test.icon_url)}
                         <div class="card-info">
@@ -809,11 +823,15 @@
                         ${actionsHtml}
                     </div>
                 `;
-                
+
                 if (test.status === 'done') {
+                    card.innerHTML = cardContent;
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => tg.openLink(`https://play.google.com/store/apps/details?id=${test.package}`);
                     doneList.appendChild(card);
                     doneCount++;
                 } else {
+                    card.innerHTML = cardContent;
                     activeList.appendChild(card);
                     activeCount++;
                 }
@@ -997,6 +1015,12 @@
 
         // --- Actions ---
         function startTimer(id, pkg) {
+            if (isTimerRunning) {
+                if (tg.showAlert) tg.showAlert('❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.');
+                else alert('❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.');
+                return;
+            }
+
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             
             // Open Google Play
@@ -1005,6 +1029,7 @@
             const btn = document.getElementById(`btn-confirm-${id}`);
             if (!btn || !btn.disabled) return; // Already active or not found
             
+            isTimerRunning = true;
             let timeLeft = 15;
             btn.innerText = `⏳ Осталось ${timeLeft} сек...`;
             
@@ -1012,6 +1037,7 @@
                 timeLeft--;
                 if (timeLeft <= 0) {
                     clearInterval(timerId);
+                    isTimerRunning = false;
                     btn.disabled = false;
                     btn.style.backgroundColor = 'var(--success-color)';
                     btn.style.color = '#fff';
