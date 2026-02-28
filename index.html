@@ -410,10 +410,12 @@
             </div>
         </div>
 
-        <h3 id="t-availableTitle" style="margin-top: 24px; margin-bottom: 12px;">Доступные для тестирования</h3>
-        <div id="available-list">
-            <!-- Available apps will be injected here -->
-        </div>
+        <details id="available-details" style="margin-top: 16px; border: 1px solid rgba(142, 142, 147, 0.2); border-radius: 12px; padding: 12px;">
+            <summary id="t-availableTitle" style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px;">🛒 Доступные для тестирования (Развернуть)</summary>
+            <div id="available-list" style="margin-top: 12px;">
+                <!-- Available apps will be injected here -->
+            </div>
+        </details>
     </div>
 
     <!-- TAB 2: Мои проекты -->
@@ -532,6 +534,9 @@
                 copied: "Email скопирован!",
                 joinGroup: "👥 1. Вступить в Google Group",
                 downloadPlay: "⬇️ 2. Скачать в Google Play",
+                openApp: "📱 Открыть",
+                showcaseLoading: "Загрузка витрины...",
+                successAlert: "Успешно!",
                 iconUrl: "Ссылка на иконку (необязательно)",
                 save: "Сохранить",
                 emptyTests: "Inbox Zero!",
@@ -539,7 +544,7 @@
                 emptyProjects: "Добавьте свое первое приложение и отправьте инвайт-ссылку тестерам. Здесь появится сводка их ежедневной активности.",
                 fillFields: "Пожалуйста, заполните все поля.",
                 bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.",
-                availableTitle: "Доступные для тестирования",
+                availableTitle: "🛒 Доступные для тестирования (Развернуть)",
                 noAvailable: "Пока нет доступных приложений",
                 activeTesters: "Активных тестеров",
                 contactOwner: "Написать владельцу",
@@ -581,6 +586,9 @@
                 copied: "Email copied!",
                 joinGroup: "👥 1. Join Google Group",
                 downloadPlay: "⬇️ 2. Download on Google Play",
+                openApp: "📱 Open",
+                showcaseLoading: "Loading showcase...",
+                successAlert: "Success!",
                 iconUrl: "Icon URL (optional)",
                 save: "Save",
                 emptyTests: "Inbox Zero!",
@@ -588,7 +596,7 @@
                 emptyProjects: "Add your first app and send an invite link to testers. A summary of their daily activity will appear here.",
                 fillFields: "Please fill in all fields.",
                 bannerText: "Get rid of chat chaos! Control daily check-ins for 12 testers in one place and find new apps for mutual testing.",
-                availableTitle: "Available for testing",
+                availableTitle: "🛒 Available for testing (Expand)",
                 noAvailable: "No apps available yet",
                 activeTesters: "Active testers",
                 contactOwner: "Contact owner",
@@ -611,6 +619,7 @@
         };
 
         const t = dict[lang];
+        const FIRST_DOWNLOAD_REVEAL_DELAY = 1000;
 
         // Apply translations to static UI
         document.addEventListener('DOMContentLoaded', () => {
@@ -645,17 +654,36 @@
             document.getElementById('app-instructions').placeholder = t.instPlaceholder;
             
             // Load real data from backend
-            loadTasks();
-            loadProjects();
+            loadDashboard();
+            const availableDetails = document.getElementById('available-details');
+            if (availableDetails) {
+                availableDetails.addEventListener('toggle', () => {
+                    if (availableDetails.open) {
+                        loadAvailableApps();
+                    }
+                });
+            }
         });
 
         // --- State ---
         let myTests = [];
         let myProjects = [];
         let availableApps = [];
+        let availableAppsLoaded = false;
+        let availableAppsLoading = false;
         let isTimerRunning = false;
 
         // --- API Calls ---
+        async function loadDashboard() {
+            await Promise.all([
+                loadTasks(),
+                loadProjects()
+            ]);
+
+            const globalLoader = document.getElementById('global-loader');
+            if (globalLoader) globalLoader.style.display = 'none';
+        }
+
         async function loadTasks() {
             try {
                 const response = await fetch(`${API_BASE}/tasks/${userId}`);
@@ -692,8 +720,6 @@
                     };
                 });
                 
-                availableApps = data.available_apps || [];
-                
                 renderTests();
             } catch (error) {
                 console.error("Error loading tasks:", error);
@@ -717,6 +743,27 @@
                 renderProjects();
             } catch (error) {
                 console.error("Error loading projects:", error);
+            }
+        }
+
+        async function loadAvailableApps() {
+            if (availableAppsLoaded || availableAppsLoading) return;
+            const availableList = document.getElementById('available-list');
+            if (availableList) {
+                availableList.innerHTML = `<p style="text-align: center; margin-top: 16px; color: var(--hint-color);">${t.showcaseLoading}</p>`;
+            }
+
+            availableAppsLoading = true;
+            try {
+                const response = await fetch(`${API_BASE}/projects/available`);
+                const data = await response.json();
+                availableApps = Array.isArray(data) ? data : (data.available_apps || []);
+                availableAppsLoaded = true;
+            } catch (error) {
+                console.error("Error loading available apps:", error);
+            } finally {
+                availableAppsLoading = false;
+                renderTests();
             }
         }
 
@@ -762,16 +809,23 @@
                     const groupUrl = test.google_group_url || 'https://groups.google.com/g/google-play-dev-test';
                     actionsHtml = `
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <a href="${groupUrl}" target="_blank" class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2); text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600;" onclick="if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">
-                                ${t.joinGroup}
-                            </a>
-                            <div class="action-row">
-                                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openPlay(${test.id}, '${test.package}')">
+                            <div id="new-download-box-${test.id}" style="display: flex; flex-direction: column; gap: 8px;">
+                                <a href="${groupUrl}" target="_blank" class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2); text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600;" onclick="if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">
+                                    ${t.joinGroup}
+                                </a>
+                                <button class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="handleFirstDownload(${test.id}, '${test.package}')">
                                     ${t.downloadPlay}
                                 </button>
-                                <button id="btn-confirm-${test.id}" class="btn btn-success" style="flex: 1;" onclick="confirmStart(${test.id})">
-                                    ${t.confirmStart}
-                                </button>
+                            </div>
+                            <div id="new-confirm-box-${test.id}" style="display: none;">
+                                <div class="action-row">
+                                    <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openPlay(${test.id}, '${test.package}')">
+                                        ${t.openApp}
+                                    </button>
+                                    <button id="btn-confirm-${test.id}" class="btn btn-success" style="flex: 1;" onclick="confirmStart(${test.id})">
+                                        ${t.confirmStart}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1091,6 +1145,18 @@
             }
         }
 
+        function handleFirstDownload(id, pkg) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            tg.openLink(`https://play.google.com/store/apps/details?id=${pkg}`);
+
+            setTimeout(() => {
+                const downloadBox = document.getElementById(`new-download-box-${id}`);
+                const confirmBox = document.getElementById(`new-confirm-box-${id}`);
+                if (downloadBox) downloadBox.style.display = 'none';
+                if (confirmBox) confirmBox.style.display = 'block';
+            }, FIRST_DOWNLOAD_REVEAL_DELAY);
+        }
+
         async function confirmStart(id) {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             
@@ -1115,8 +1181,15 @@
                     
                     if (result.status === 'success') {
                         setTimeout(() => {
-                            // Reload tasks from server to reflect the checkin
-                            loadTasks();
+                            card.style.display = 'none';
+                            const doneCountEl = document.getElementById('done-count');
+                            if (doneCountEl) {
+                                const nextCount = (parseInt(doneCountEl.innerText || '0', 10) || 0) + 1;
+                                doneCountEl.innerText = String(nextCount);
+                                const doneSectionEl = document.getElementById('done-section');
+                                if (doneSectionEl) doneSectionEl.style.display = 'block';
+                            }
+                            if (tg.showAlert) tg.showAlert(t.successAlert);
                         }, 400);
                     } else {
                         card.classList.remove('removing');
