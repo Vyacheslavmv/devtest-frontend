@@ -882,6 +882,64 @@
 
         }
 
+        function renderCompletedTests(completedTests) {
+            const doneList = document.getElementById('done-list');
+            doneList.innerHTML = '';
+            
+            let doneCount = 0;
+
+            completedTests.forEach(test => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.id = `test-card-${test.id}`;
+                
+                let actionsHtml = `
+                    <div class="done-text">
+                        ${t.doneTodayText}
+                    </div>
+                `;
+
+                let ownerBtnHtml = '';
+                if (test.owner_username) {
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="tg.openTelegramLink('https://t.me/${test.owner_username}')">💬</button>`;
+                }
+
+                let devInfoHtml = '';
+                if (test.instructions) {
+                    devInfoHtml = `
+                        <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;">
+                            <summary style="font-size: 13px; font-weight: 500; color: var(--text-color); cursor: pointer; outline: none;">${t.devInfo}</summary>
+                            <div style="font-size: 13px; color: var(--hint-color); margin-top: 8px; white-space: pre-wrap;">${test.instructions}</div>
+                        </details>
+                    `;
+                }
+
+                let cardContent = `
+                    <div class="card-header">
+                        ${renderIcon(test.name, test.icon_url)}
+                        <div class="card-info">
+                            <div class="card-title">${test.name}</div>
+                            <div class="card-subtitle">${test.package}</div>
+                        </div>
+                        ${ownerBtnHtml}
+                    </div>
+                    ${devInfoHtml}
+                    <div id="actions-${test.id}">
+                        ${actionsHtml}
+                    </div>
+                `;
+
+                card.innerHTML = cardContent;
+                card.style.cursor = 'pointer';
+                card.onclick = () => tg.openLink(`https://play.google.com/store/apps/details?id=${test.package}`);
+                doneList.appendChild(card);
+                doneCount++;
+            });
+
+            document.getElementById('done-count').innerText = doneCount;
+            document.getElementById('done-section').style.display = doneCount > 0 ? 'block' : 'none';
+        }
+
         function renderAvailableApps() {
             // Render Available Apps
             const availableList = document.getElementById('available-list');
@@ -1141,6 +1199,15 @@
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             
             const card = document.getElementById(`test-card-${id}`);
+            const btn = document.getElementById(`btn-confirm-${id}`);
+            
+            if (btn) {
+                btn.innerText = "✅ Засчитано!";
+                btn.style.backgroundColor = "#2e7d32";
+                btn.style.color = "#ffffff";
+                btn.disabled = true;
+            }
+
             if (card) {
                 card.classList.add('removing');
                 
@@ -1160,21 +1227,76 @@
                     const result = await response.json();
                     
                     if (result.status === 'success') {
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             card.style.display = 'none';
-                            const doneCount = document.getElementById('done-count');
-                            if (doneCount) doneCount.innerText = parseInt(doneCount.innerText || '0', 10) + 1;
-                            const doneSection = document.getElementById('done-section');
-                            if (doneSection) doneSection.style.display = 'block';
-                            if (tg.showAlert) tg.showAlert(t.successCheckin);
-                        }, 400);
+                            
+                            try {
+                                const tasksResponse = await fetch(`${API_BASE}/tasks/${userId}`);
+                                const data = await tasksResponse.json();
+                                
+                                const today = getLocalDate();
+                                const freshTests = data.to_test_today.map(app => {
+                                    let status = 'new';
+                                    if (app.last_check_date === today) {
+                                        status = 'done';
+                                    } else if (app.last_check_date && app.last_check_date < today) {
+                                        status = 'daily';
+                                    } else if (app.last_check_date === null) {
+                                        status = 'new';
+                                    }
+                                    
+                                    const existingTest = myTests.find(t => t.id === app.app_id);
+                                    if (existingTest && existingTest.status === 'opened' && status !== 'done') {
+                                        status = 'opened';
+                                    }
+                                    
+                                    return {
+                                        id: app.app_id,
+                                        name: app.name,
+                                        package: app.package_name,
+                                        icon_url: app.icon_url,
+                                        google_group_url: app.google_group_url,
+                                        instructions: app.instructions,
+                                        owner_username: app.owner_username,
+                                        status: status
+                                    };
+                                });
+                                
+                                myTests = freshTests;
+                                renderCompletedTests(myTests.filter(t => t.status === 'done'));
+                                
+                                const activeCount = myTests.filter(t => t.status !== 'done').length;
+                                if (activeCount === 0) {
+                                    const activeList = document.getElementById('tests-list');
+                                    activeList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">🎉</div>
+                                            <h3>${t.emptyTests}</h3>
+                                            <p>${t.emptyTestsDesc}</p>
+                                        </div>
+                                    `;
+                                }
+                            } catch (e) {
+                                console.error("Error fetching fresh data after checkin:", e);
+                            }
+                        }, 800);
                     } else {
                         card.classList.remove('removing');
+                        if (btn) {
+                            btn.innerText = t.confirmStart;
+                            btn.style.backgroundColor = "var(--success-color)";
+                            btn.disabled = false;
+                        }
                         if (tg.showAlert) tg.showAlert("Error checking in.");
                     }
                 } catch (error) {
                     console.error("Checkin error:", error);
                     card.classList.remove('removing');
+                    if (btn) {
+                        btn.innerText = t.confirmStart;
+                        btn.style.backgroundColor = "var(--success-color)";
+                        btn.disabled = false;
+                    }
                     if (tg.showAlert) tg.showAlert("Network error. Please try again.");
                 }
             }
@@ -1399,7 +1521,3 @@
     </script>
 </body>
 </html>
-
-
-
-
