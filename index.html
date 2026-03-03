@@ -611,13 +611,7 @@
                 emailWarningYes: "✅ Да, добавил (Создать)",
                 emailWarningCancel: "❌ Отмена",
                 editProjectTitle: "Редактировать проект",
-                editName: "Название",
-                editDescription: "Пожелания к тесту / Инструкции",
-                editDescriptionPlaceholder: "Например: Жду скриншот запуска раз в 3 дня в личку...",
-                editIconUrl: "Ссылка на иконку",
                 editPackage: "Пакет (Play Store Link)",
-                editGroup: "Ссылка на Google Group",
-                editSave: "Сохранить",
                 readonlyFieldAlert: "Эти данные нельзя изменить. Если вы допустили ошибку при вводе ссылок, удалите этот проект и создайте новый."
             },
             en: {
@@ -675,13 +669,7 @@
                 emailWarningYes: "✅ Yes, added (Create)",
                 emailWarningCancel: "❌ Cancel",
                 editProjectTitle: "Edit project",
-                editName: "Name",
-                editDescription: "Test requirements / Instructions",
-                editDescriptionPlaceholder: "For example: I'm waiting for a screenshot of the launch once every 3 days in a private message....",
-                editIconUrl: "Icon URL",
                 editPackage: "Package (Play Store Link)",
-                editGroup: "Google Group URL",
-                editSave: "Save",
                 readonlyFieldAlert: "This data cannot be changed. If you made a mistake when entering links, delete this project and create a new one."
             }
         };
@@ -726,12 +714,13 @@
             document.getElementById('t-emailWarningYes').innerText = t.emailWarningYes;
             document.getElementById('t-emailWarningCancel').innerText = t.emailWarningCancel;
             document.getElementById('t-editProjectTitle').innerText = t.editProjectTitle;
-            document.getElementById('t-editName').innerText = t.editName;
-            document.getElementById('t-editDescription').innerText = t.editDescription;
-            document.getElementById('t-editIconUrl').innerText = t.editIconUrl;
+            document.getElementById('t-editName').innerText = t.appName;
+            document.getElementById('t-editDescription').innerText = t.instructions;
+            document.getElementById('edit-description').placeholder = t.instPlaceholder;
+            document.getElementById('t-editIconUrl').innerText = t.iconUrl;
             document.getElementById('t-editPackage').innerText = t.editPackage;
-            document.getElementById('t-editGroup').innerText = t.editGroup;
-            document.getElementById('t-editSave').innerText = t.editSave;
+            document.getElementById('t-editGroup').innerText = t.googleGroup;
+            document.getElementById('t-editSave').innerText = t.save;
 
             // Load real data from backend
             loadTasks();
@@ -1648,7 +1637,7 @@
             document.getElementById('edit-description').value = project.instructions || '';
             document.getElementById('edit-icon').value = project.icon_url || '';
             document.getElementById('edit-package').value = project.package || '';
-            document.getElementById('edit-group').value = project.google_group_url || '';
+            document.getElementById('edit-group').value = project.google_group_url || 'https://groups.google.com/g/google-play-dev-test';
             document.getElementById('edit-project-modal').classList.add('active');
         }
 
