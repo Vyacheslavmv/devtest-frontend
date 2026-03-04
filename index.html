@@ -331,7 +331,7 @@
         .form-label {
             display: block;
             margin-bottom: 8px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
             color: var(--hint-color);
         }
@@ -383,6 +383,27 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .helper-quote {
+            border-left: 3px solid var(--link-color);
+            padding-left: 10px;
+            opacity: 0.75;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            opacity: 0.5;
+        }
+
+        .details-arrow {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+            color: var(--hint-color);
+        }
+
+        details[open] > summary .details-arrow {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
@@ -411,7 +432,7 @@
         </div>
 
         <details id="available-details" style="margin-top: 16px;">
-            <summary id="t-availableTitle" style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; align-items: center; gap: 8px;">🛒 Доступные для тестирования (Развернуть)</summary>
+            <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle">🛒 Взять другие проекты на тест</span><span class="details-arrow">▼</span></summary>
             <div id="available-list" style="margin-top: 8px;">
                 <p style="text-align: center; color: var(--hint-color); margin-top: 8px;">Загрузка витрины...</p>
             </div>
@@ -459,11 +480,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label" id="t-googleGroup">Ссылка на Google Group</label>
-                <div class="form-hint" id="t-groupHint"> Вставьте свою или оставьте текущую и в Play Console добавив тестером эту группу: <span class="copyable-email" onclick="copyEmail()">google-play-dev-test@googlegroups.com 📋</span></div>
+                <div class="form-hint helper-quote" id="t-groupHint"> Вставьте свою или оставьте текущую и в Play Console добавив тестером эту группу: <span class="copyable-email" onclick="copyEmail()">google-play-dev-test@googlegroups.com 📋</span></div>
                 <input type="url" id="app-group" class="form-input" placeholder="https://groups.google.com/g/google-play-dev-test">
             </div>
-            <details style="margin-bottom: 16px; border: 1px solid rgba(142, 142, 147, 0.2); border-radius: 12px; padding: 12px;">
-                <summary style="font-size: 14px; font-weight: 500; color: var(--link-color); cursor: pointer; outline: none; list-style: none;" id="t-optionalSettings">⚙️ Дополнительные настройки (необязательно)</summary>
+            <details style="margin-bottom: 16px;">
+                <summary style="font-size: 14px; font-weight: 500; color: var(--link-color); cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;" id="t-optionalSettings"><span id="t-optionalSettingsText">⚙️ Дополнительные настройки (необязательно)</span><span class="details-arrow">▼</span></summary>
                 <div class="form-group" style="margin-top: 12px;">
                     <label class="form-label" id="t-iconUrl">Ссылка на иконку</label>
                     <input type="url" id="app-icon" class="form-input" placeholder="https://example.com/icon.png">
@@ -577,7 +598,7 @@
                 packageName: "Ссылка на Google Play",
                 googleGroup: "Ссылка на Google Group",
                 groupHint: "Вставьте свою или оставьте стандартную и в Play Console добавьте тестером эту группу: <span class=\"copyable-email\" onclick=\"copyEmail()\">google-play-dev-test@googlegroups.com 📋</span>",
-                copied: "Email скопирован!",
+                copied: "Скопировано!",
                 joinGroup: "👥 1. Вступить в Google Group",
                 downloadPlay: "⬇️ 2. Скачать в Google Play",
                 iconUrl: "Ссылка на иконку",
@@ -587,7 +608,7 @@
                 emptyProjects: "Добавьте свое первое приложение и отправьте инвайт-ссылку тестерам. Здесь появится сводка их ежедневной активности.",
                 fillFields: "Пожалуйста, заполните все поля.",
                 bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.",
-                availableTitle: "🛒 Доступные для тестирования (Развернуть)",
+                availableTitle: "🛒 Взять другие проекты на тест",
                 noAvailable: "Пока нет доступных приложений",
                 activeTesters: "Активных тестеров",
                 contactOwner: "Написать владельцу",
@@ -612,7 +633,11 @@
                 emailWarningCancel: "❌ Отмена",
                 editProjectTitle: "Редактировать проект",
                 editPackage: "Пакет (Play Store Link)",
-                readonlyFieldAlert: "Эти данные нельзя изменить. Если вы допустили ошибку при вводе ссылок, удалите этот проект и создайте новый."
+                readonlyFieldAlert: "Эти данные нельзя изменить. Если вы допустили ошибку при вводе ссылок, удалите этот проект и создайте новый.",
+                screenshotBtn: "Отправить Скриншот и Завершить день",
+                screenshotWarning: "⚠️ Сегодня день обязательного скриншота!",
+                screenshotDayAlert: "✅ День засчитан!\n\nНе забудьте прикрепить скриншот в чате. Возвращайтесь завтра для нового чекина.",
+                screenshotDayOwnerAlert: "У данного тестировщика сегодня день обязательного скриншота! Вы должны получить от него скриншот в личные сообщения."
             },
             en: {
                 tabTests: "My Tests",
@@ -635,7 +660,7 @@
                 packageName: "Google Play Link",
                 googleGroup: "Google Group URL",
                 groupHint: "Insert your own or leave the default one, and add this group as a tester in the Play Console: <span class=\"copyable-email\" onclick=\"copyEmail()\">google-play-dev-test@googlegroups.com 📋</span>",
-                copied: "Email copied!",
+                copied: "Copied!",
                 joinGroup: "👥 1. Join Google Group",
                 downloadPlay: "⬇️ 2. Download on Google Play",
                 iconUrl: "Icon URL",
@@ -645,7 +670,7 @@
                 emptyProjects: "Add your first app and send an invite link to testers. A summary of their daily activity will appear here.",
                 fillFields: "Please fill in all fields.",
                 bannerText: "Get rid of chat chaos! Control daily check-ins for 12 testers in one place and find new apps for mutual testing.",
-                availableTitle: "🛒 Available for testing (Expand)",
+                availableTitle: "🛒 Take other projects to test",
                 noAvailable: "No apps available yet",
                 activeTesters: "Active testers",
                 contactOwner: "Contact owner",
@@ -670,7 +695,11 @@
                 emailWarningCancel: "❌ Cancel",
                 editProjectTitle: "Edit project",
                 editPackage: "Package (Play Store Link)",
-                readonlyFieldAlert: "This data cannot be changed. If you made a mistake when entering links, delete this project and create a new one."
+                readonlyFieldAlert: "This data cannot be changed. If you made a mistake when entering links, delete this project and create a new one.",
+                screenshotBtn: "Send Screenshot & Complete day",
+                screenshotWarning: "⚠️ Today is a mandatory screenshot day!",
+                screenshotDayAlert: "✅ Day confirmed!\n\nDon't forget to attach a screenshot in the chat. Come back tomorrow for a new check-in.",
+                screenshotDayOwnerAlert: "This tester has a mandatory screenshot day today! You should receive a screenshot from them in private messages."
             }
         };
 
@@ -704,7 +733,7 @@
             document.getElementById('t-deleteMessageLabel').innerText = t.deleteMessageLabel;
             document.getElementById('t-cancelDelete').innerText = t.cancelDelete;
             document.getElementById('t-confirmDeleteBtn').innerText = t.confirmDeleteBtn;
-            document.getElementById('t-optionalSettings').innerText = t.optionalSettings;
+            document.getElementById('t-optionalSettingsText').innerText = t.optionalSettings;
             document.getElementById('t-instructions').innerText = t.instructions;
             document.getElementById('app-instructions').placeholder = t.instPlaceholder;
 
@@ -770,6 +799,7 @@
                         google_group_url: app.google_group_url,
                         instructions: app.instructions,
                         status: status,
+                        start_date: app.start_date,
                         owner_username: app.owner_username
                     };
                 });
@@ -863,34 +893,58 @@
                 let actionsHtml = '';
                 if (test.status === 'new') {
                     const groupUrl = test.google_group_url || 'https://groups.google.com/g/google-play-dev-test';
+                    const safeGroupUrl = groupUrl.replace(/'/g, "\\'");
                     actionsHtml = `
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <div id="new-join-box-${test.id}">
-                                <a href="${groupUrl}" target="_blank" class="btn btn-secondary" style="background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2); text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600; margin-bottom: 8px;" onclick="if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">
+                            <div style="display: flex; gap: 8px; align-items: stretch;">
+                                <a href="${groupUrl}" target="_blank" class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2); text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600;" onclick="if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">
                                     ${t.joinGroup}
                                 </a>
-                                <button class="btn btn-secondary" style="width: 100%; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="handleFirstDownload(${test.id}, '${test.package}')">
-                                    ${t.downloadPlay}
-                                </button>
+                                <button class="btn-icon" style="width: 44px; min-height: 44px; font-size: 18px;" onclick="copyGroupUrl('${safeGroupUrl}')">📋</button>
                             </div>
-                            <div id="new-confirm-box-${test.id}" style="display: none;">
-                                <button id="btn-confirm-${test.id}" class="btn btn-success" style="width: 100%; background-color: var(--success-color); color: #fff; cursor: pointer;" onclick="confirmStart(${test.id})">
-                                    ${t.confirmStart}
+                            <button class="btn btn-secondary" style="width: 100%; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="handleFirstDownload(${test.id}, '${test.package}')">
+                                ${t.downloadPlay}
+                            </button>
+                            <div id="new-screenshot-box-${test.id}" style="display: none;">
+                                <button id="btn-confirm-${test.id}" class="btn btn-success" style="width: 100%;" onclick="handleScreenshotAndConfirm(${test.id}, '${test.owner_username || ''}')">
+                                    💬 3. ${t.screenshotBtn}
                                 </button>
+                                <div style="color: #ff3b30; font-size: 13px; margin-top: 8px; text-align: center;">
+                                    ${t.screenshotWarning}
+                                </div>
                             </div>
                         </div>
                     `;
                 } else if (test.status === 'daily' || test.status === 'opened') {
-                    actionsHtml = `
-                        <div class="action-row">
-                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="startTimer(${test.id}, '${test.package}')">
-                                📱 Открыть
-                            </button>
-                            <button id="btn-confirm-${test.id}" class="btn" style="flex: 2; background-color: rgba(142, 142, 147, 0.2); color: var(--hint-color); cursor: not-allowed;" disabled>
-                                ${t.confirmStart}
-                            </button>
-                        </div>
-                    `;
+                    const testingDay = test.start_date ? Math.floor((new Date(getLocalDate()) - new Date(test.start_date)) / (1000*60*60*24)) + 1 : 999;
+                    const isScreenshotDay = [7, 14].includes(testingDay);
+
+                    if (isScreenshotDay) {
+                        actionsHtml = `
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <button class="btn btn-secondary" style="width: 100%; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openLink('https://play.google.com/store/apps/details?id=${test.package}')">
+                                    📱 Открыть
+                                </button>
+                                <button id="btn-confirm-${test.id}" class="btn btn-success" style="width: 100%;" onclick="handleScreenshotAndConfirm(${test.id}, '${test.owner_username || ''}')">
+                                    💬 ${t.screenshotBtn}
+                                </button>
+                                <div style="color: #ff3b30; font-size: 13px; text-align: center;">
+                                    ${t.screenshotWarning}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        actionsHtml = `
+                            <div class="action-row">
+                                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="startTimer(${test.id}, '${test.package}')">
+                                    📱 Открыть
+                                </button>
+                                <button id="btn-confirm-${test.id}" class="btn" style="flex: 2; background-color: rgba(142, 142, 147, 0.2); color: var(--hint-color); cursor: not-allowed;" disabled>
+                                    ${t.confirmStart}
+                                </button>
+                            </div>
+                        `;
+                    }
                 } else if (test.status === 'done') {
                     actionsHtml = `
                         <div class="done-text">
@@ -1134,6 +1188,15 @@
                             const msg = `Привет! 👀 Кажется, ты затерялся в матрице и забыл про ежедневный тест моего приложения «${project.name}»! Забегай в бота сделать спасительный чекин, пока Google нас не покарал 😅: https://t.me/Android12TestersBot`;
                             bellHtml = `<a href="javascript:void(0);" onclick="tg.openTelegramLink('https://t.me/${cleanUsername}?text=${encodeURIComponent(msg)}')" style="text-decoration: none; font-size: 16px;">🔔</a>`;
                         }
+
+                        let screenshotDayHtml = '';
+                        if (tester.start_date) {
+                            const startDt = new Date(tester.start_date);
+                            const testerDay = Math.floor((todayDate - startDt) / (1000*60*60*24)) + 1;
+                            if ([1, 7, 14].includes(testerDay)) {
+                                screenshotDayHtml = `<span onclick="showScreenshotDayAlert()" style="cursor: pointer; font-size: 16px;">📸</span>`;
+                            }
+                        }
                         
                         const trashHtml = `<span onclick="deleteTester(${project.id}, ${tester.tester_id}, '${cleanUsername || tester.tester_id}')" style="cursor: pointer; font-size: 16px;">🗑️</span>`;
                             
@@ -1141,6 +1204,7 @@
                             <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${nameHtml}
+                                    ${screenshotDayHtml}
                                     ${bellHtml}
                                 </div>
                                 <div style="display: flex; gap: 8px; align-items: center;">
@@ -1271,11 +1335,32 @@
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             tg.openLink(`https://play.google.com/store/apps/details?id=${pkg}`);
             setTimeout(() => {
-                const joinBox = document.getElementById(`new-join-box-${id}`);
-                if (joinBox) joinBox.style.display = 'none';
-                const confirmBox = document.getElementById(`new-confirm-box-${id}`);
-                if (confirmBox) confirmBox.style.display = 'block';
+                const screenshotBox = document.getElementById(`new-screenshot-box-${id}`);
+                if (screenshotBox) screenshotBox.style.display = 'block';
             }, 1000);
+        }
+
+        function handleScreenshotAndConfirm(id, ownerUsername) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            if (ownerUsername) {
+                tg.openTelegramLink(`https://t.me/${ownerUsername}`);
+            }
+            setTimeout(async () => {
+                await confirmStart(id);
+                if (tg.showAlert) tg.showAlert(t.screenshotDayAlert);
+            }, 1000);
+        }
+
+        function copyGroupUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                if (tg.showAlert) tg.showAlert(t.copied);
+            }).catch(err => console.error('Copy failed', err));
+        }
+
+        function showScreenshotDayAlert() {
+            if (tg.showAlert) tg.showAlert(t.screenshotDayOwnerAlert);
+            else alert(t.screenshotDayOwnerAlert);
         }
 
         async function confirmStart(id) {
@@ -1341,6 +1426,7 @@
                                         google_group_url: app.google_group_url,
                                         instructions: app.instructions,
                                         owner_username: app.owner_username,
+                                        start_date: app.start_date,
                                         status: status
                                     };
                                 });
