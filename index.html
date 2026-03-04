@@ -529,6 +529,15 @@
         </div>
     </div>
 
+    <!-- Invite Modal -->
+    <div id="invite-modal" class="modal-overlay" onclick="closeInviteModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-height: 85vh; overflow-y: auto;">
+            <h3 id="t-inviteModalTitle">Пригласить тестеров</h3>
+            <div id="invite-modal-body"></div>
+            <button class="btn btn-secondary" style="margin-top: 8px; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="closeInviteModal()" id="t-inviteClose">Закрыть</button>
+        </div>
+    </div>
+
     <!-- Edit Project Modal -->
     <div id="edit-project-modal" class="modal-overlay" onclick="closeEditModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -637,7 +646,15 @@
                 screenshotBtn: "Отправить Скриншот и Завершить тест",
                 screenshotWarning: "⚠️ Сегодня день обязательного скриншота!",
                 screenshotDayAlert: "✅ День засчитан!\n\nЕсли вы не отправили скриншот с тестируемым приложением - сделайте это сейчас, что бы вас не залокировали. И возвращайтесь завтра для нового чекина.",
-                screenshotDayOwnerAlert: "У данного тестировщика сегодня день обязательного скриншота! Вы должны получить от него скриншот в личные сообщения."
+                screenshotDayOwnerAlert: "У данного тестировщика сегодня день обязательного скриншота! Вы должны получить от него скриншот в личные сообщения.",
+                inviteModalTitle: "Пригласить тестеров",
+                inviteClose: "Закрыть",
+                inviteBlock1Title: "📢 Опубликовать на нашей Бирже",
+                inviteBlock1Btn: "Скопировать и опубликовать",
+                inviteBlock2Title: "💬 Предложить взаимный тест в ЛС",
+                inviteBlock2Btn: "Скопировать и открыть Избранное",
+                inviteBlock3Title: "🔗 Только инвайт-ссылка",
+                inviteBlock3Btn: "Скопировать и открыть Избранное"
             },
             en: {
                 tabTests: "My Tests",
@@ -699,7 +716,15 @@
                 screenshotBtn: "Send Screenshot & Complete test",
                 screenshotWarning: "⚠️ Today is a mandatory screenshot day!",
                 screenshotDayAlert: "✅ Day counted!\n\nIf you haven't sent a screenshot with the app being tested, do it now so you don't get locked out. And come back tomorrow for a new check-in.",
-                screenshotDayOwnerAlert: "This tester has a mandatory screenshot day today! You should receive a screenshot from them in private messages."
+                screenshotDayOwnerAlert: "This tester has a mandatory screenshot day today! You should receive a screenshot from them in private messages.",
+                inviteModalTitle: "Invite testers",
+                inviteClose: "Close",
+                inviteBlock1Title: "📢 Post on our Exchange",
+                inviteBlock1Btn: "Copy and publish",
+                inviteBlock2Title: "💬 Offer mutual test in DM",
+                inviteBlock2Btn: "Copy and open Saved Messages",
+                inviteBlock3Title: "🔗 Just the invite link",
+                inviteBlock3Btn: "Copy and open Saved Messages"
             }
         };
 
@@ -1232,7 +1257,7 @@
                         ${testersHtml}
                     </div>
                     <div class="action-row" style="margin-top: 16px;">
-                        <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="copyInviteLink(${project.id})">
+                        <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openInviteModal(${project.id})">
                             🔗 ${t.inviteLink}
                         </button>
                         <button class="btn" style="flex: 1; background-color: rgba(255, 59, 48, 0.1); color: #ff3b30;" onclick="openDeleteModal(${project.id})">
@@ -1499,13 +1524,66 @@
             localStorage.setItem('hideBanner', 'true');
         }
 
-        function copyInviteLink(id) {
-            const link = `https://t.me/Android12TestersBot?start=app_${id}`;
-            navigator.clipboard.writeText(link).then(() => {
+        function openInviteModal(projectId) {
+            const project = myProjects.find(p => p.id === projectId);
+            if (!project) return;
+
+            const link = `https://t.me/Android12TestersBot?start=app_${project.id}`;
+            const instrLine = project.instructions ? `\nℹ️ Описание: ${project.instructions}` : '';
+
+            const block1Text = `📱 Приложение: ${project.name}${instrLine}\n🤖 Взять на тест (ссылка в трекер):\n👉 ${link}\n\nБеру ваши проекты в ответ! Бот поможет не забывать про ежедневные клики и прозрачно проверять тестеров.`;
+
+            const block2Text = `Привет! Взаимный тест? Мое приложение: ${project.name}.\n\nЯ использую бота в TG для учета — не нужно каждый день списываться, бот всё трекает сам.\n\nДобавь свой проект в систему, присылай мне инвайт, я сразу возьму на тест!\n\nМой ссылка: ${link}`;
+
+            const block3Text = link;
+
+            const cardStyle = 'background: var(--secondary-bg-color); border-radius: 12px; padding: 14px; margin-bottom: 12px;';
+            const titleStyle = 'font-size: 15px; font-weight: 600; margin-bottom: 10px;';
+            const preStyle = 'font-family: monospace; font-size: 12px; color: var(--hint-color); white-space: pre-wrap; word-break: break-word; max-height: 150px; overflow-y: auto; margin-bottom: 12px; line-height: 1.4;';
+
+            const body = document.getElementById('invite-modal-body');
+            body.innerHTML = `
+                <div style="${cardStyle}">
+                    <div style="${titleStyle}">${t.inviteBlock1Title}</div>
+                    <div style="${preStyle}">${block1Text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                    <button class="btn btn-primary" onclick="copyAndAction('${escapeForAttr(block1Text)}', 'exchange')">${t.inviteBlock1Btn}</button>
+                </div>
+                <div style="${cardStyle}">
+                    <div style="${titleStyle}">${t.inviteBlock2Title}</div>
+                    <div style="${preStyle}">${block2Text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                    <button class="btn btn-secondary" style="width: 100%; background-color: var(--bg-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="copyAndAction('${escapeForAttr(block2Text)}', 'saved')">${t.inviteBlock2Btn}</button>
+                </div>
+                <div style="${cardStyle}">
+                    <div style="${titleStyle}">${t.inviteBlock3Title}</div>
+                    <div style="${preStyle}">${block3Text}</div>
+                    <button class="btn btn-secondary" style="width: 100%; background-color: var(--bg-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="copyAndAction('${escapeForAttr(block3Text)}', 'saved')">${t.inviteBlock3Btn}</button>
+                </div>
+            `;
+
+            document.getElementById('t-inviteModalTitle').innerText = t.inviteModalTitle;
+            document.getElementById('t-inviteClose').innerText = t.inviteClose;
+            document.getElementById('invite-modal').classList.add('active');
+        }
+
+        function escapeForAttr(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+        }
+
+        function copyAndAction(text, target) {
+            const decoded = text.replace(/\\n/g, '\n').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+            navigator.clipboard.writeText(decoded).then(() => {
                 if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                if (tg.showAlert) tg.showAlert(t.inviteCopied);
-                else alert(t.inviteCopied);
+                if (target === 'exchange') {
+                    tg.openTelegramLink('https://t.me/googleplay_console_12testers/2');
+                } else {
+                    tg.openTelegramLink('https://t.me/me');
+                }
             }).catch(err => console.error('Copy failed', err));
+        }
+
+        function closeInviteModal(event) {
+            if (event && event.target !== document.getElementById('invite-modal')) return;
+            document.getElementById('invite-modal').classList.remove('active');
         }
 
         async function deleteTester(appId, testerId, testerName) {
