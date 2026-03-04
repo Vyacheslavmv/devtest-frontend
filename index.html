@@ -634,9 +634,9 @@
                 editProjectTitle: "Редактировать проект",
                 editPackage: "Пакет (Play Store Link)",
                 readonlyFieldAlert: "Эти данные нельзя изменить. Если вы допустили ошибку при вводе ссылок, удалите этот проект и создайте новый.",
-                screenshotBtn: "Отправить Скриншот и Завершить день",
+                screenshotBtn: "Отправить Скриншот и Завершить тест",
                 screenshotWarning: "⚠️ Сегодня день обязательного скриншота!",
-                screenshotDayAlert: "✅ День засчитан!\n\nНе забудьте прикрепить скриншот в чате. Возвращайтесь завтра для нового чекина.",
+                screenshotDayAlert: "✅ День засчитан!\n\nЕсли вы не отправили скриншот с тестируемым приложением - сделайте это сейчас, что бы вас не залокировали. И возвращайтесь завтра для нового чекина.",
                 screenshotDayOwnerAlert: "У данного тестировщика сегодня день обязательного скриншота! Вы должны получить от него скриншот в личные сообщения."
             },
             en: {
@@ -696,9 +696,9 @@
                 editProjectTitle: "Edit project",
                 editPackage: "Package (Play Store Link)",
                 readonlyFieldAlert: "This data cannot be changed. If you made a mistake when entering links, delete this project and create a new one.",
-                screenshotBtn: "Send Screenshot & Complete day",
+                screenshotBtn: "Send Screenshot & Complete test",
                 screenshotWarning: "⚠️ Today is a mandatory screenshot day!",
-                screenshotDayAlert: "✅ Day confirmed!\n\nDon't forget to attach a screenshot in the chat. Come back tomorrow for a new check-in.",
+                screenshotDayAlert: "✅ Day counted!\n\nIf you haven't sent a screenshot with the app being tested, do it now so you don't get locked out. And come back tomorrow for a new check-in.",
                 screenshotDayOwnerAlert: "This tester has a mandatory screenshot day today! You should receive a screenshot from them in private messages."
             }
         };
@@ -900,7 +900,6 @@
                                 <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openLink('${safeGroupUrl}', { try_browser: 'chrome' }); if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();">${t.joinGroup}</button>
                                 <button class="btn-icon" style="width: 44px; min-height: 44px; font-size: 18px;" onclick="copyGroupUrl('${safeGroupUrl}')">📋</button>
                             </div>
-                            <div style="font-size: 11px; color: var(--tg-theme-hint-color); margin-bottom: 12px; line-height: 1.2;">💡 <i>Если после авторизации Google страница зависает, скопируйте ссылку (📋) и откройте её вручную в своем браузере.</i></div>
                             <button class="btn btn-secondary" style="width: 100%; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="handleFirstDownload(${test.id}, '${test.package}')">
                                 ${t.downloadPlay}
                             </button>
