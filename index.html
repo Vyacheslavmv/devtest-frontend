@@ -984,7 +984,7 @@
                 let devInfoHtml = '';
                 if (test.instructions) {
                     devInfoHtml = `
-                        <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;">
+                        <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;" onclick="event.stopPropagation();">
                             <summary style="font-size: 13px; font-weight: 500; color: var(--text-color); cursor: pointer; outline: none;">${t.devInfo}</summary>
                             <div style="font-size: 13px; color: var(--hint-color); margin-top: 8px; white-space: pre-wrap;">${test.instructions}</div>
                         </details>
@@ -1059,7 +1059,7 @@
                 let devInfoHtml = '';
                 if (test.instructions) {
                     devInfoHtml = `
-                        <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;">
+                        <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;" onclick="event.stopPropagation();">
                             <summary style="font-size: 13px; font-weight: 500; color: var(--text-color); cursor: pointer; outline: none;">${t.devInfo}</summary>
                             <div style="font-size: 13px; color: var(--hint-color); margin-top: 8px; white-space: pre-wrap;">${test.instructions}</div>
                         </details>
@@ -1571,14 +1571,13 @@
 
         function copyAndAction(text, target) {
             const decoded = text.replace(/\\n/g, '\n').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
-            navigator.clipboard.writeText(decoded).then(() => {
-                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                if (target === 'exchange') {
-                    tg.openTelegramLink('https://t.me/googleplay_console_12testers/2');
-                } else {
-                    tg.openTelegramLink('https://t.me/me');
-                }
-            }).catch(err => console.error('Copy failed', err));
+            navigator.clipboard.writeText(decoded).catch(err => console.error('Copy failed', err));
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            if (target === 'exchange') {
+                tg.openTelegramLink('https://t.me/googleplay_console_12testers/2');
+            } else {
+                tg.openTelegramLink('https://t.me/share/url?text=' + encodeURIComponent(decoded));
+            }
         }
 
         function closeInviteModal(event) {
