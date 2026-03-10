@@ -719,10 +719,17 @@
                 timerRemaining: "⏳ Осталось {sec} сек...",
                 antiFraudAlert: "❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.",
                 confirmed: "✅ Засчитано!",
-                // Project info
-                daysSince: "📅 День {days}/30",
+                // Visibility system
+                visibilityPublic: "🟢 Видно на Витрине",
+                visibilityPrivate: "🔴 Скрыто с Витрины",
+                visibilityHint: "Тестируйте чужие приложения, чтобы ваши стали видны на Витрине (нужно ≥3 активных тестов за 72ч)",
+                visibilityTitle: "📊 Видимость на Витрине",
+                activeTestsLabel: "Ваших активных тестов",
+                rankLabel: "Рейтинг: #{rank} из {total}",
+                needMore: "Для публикации нужно ещё: {count}",
+                newBadge: "🆕 Новинка",
+                topLabel: "TOP-{n}: {count} тестов",
                 testersCountLabel: "👥 Тестеров",
-                vitrineExpired: "⚠️ Витрина закрыта (30+ дней)",
                 // Bell notification
                 bellNotifyMsg: "Привет! 👀 Кажется, ты затерялся в матрице и забыл про ежедневный тест моего приложения «{name}»! Забегай в бота сделать спасительный чекин, пока Google нас не покарал 😅: https://t.me/Android12TestersBot",
                 // Delete tester
@@ -812,10 +819,17 @@
                 timerRemaining: "⏳ {sec} sec left...",
                 antiFraudAlert: "❌ Fast clicking will kill stats for both of us! Google Play checks engagement. Spend these 15 seconds honestly testing the open app (click around the menu) so we all pass moderation.",
                 confirmed: "✅ Counted!",
-                // Project info
-                daysSince: "📅 Day {days}/30",
+                // Visibility system
+                visibilityPublic: "🟢 Visible on Showcase",
+                visibilityPrivate: "🔴 Hidden from Showcase",
+                visibilityHint: "Test others' apps to make yours visible on the Showcase (need ≥3 active tests in 72h)",
+                visibilityTitle: "📊 Showcase Visibility",
+                activeTestsLabel: "Your active tests",
+                rankLabel: "Rank: #{rank} of {total}",
+                needMore: "Need {count} more to publish",
+                newBadge: "🆕 New",
+                topLabel: "TOP-{n}: {count} tests",
                 testersCountLabel: "👥 Testers",
-                vitrineExpired: "⚠️ Showcase closed (30+ days)",
                 // Bell notification
                 bellNotifyMsg: "Hey! 👀 Looks like you forgot about the daily test of my app \"{name}\"! Open the bot and do a check-in before Google punishes us 😅: https://t.me/Android12TestersBot",
                 // Delete tester
@@ -868,7 +882,7 @@
             document.getElementById('t-editGroup').innerText = t.googleGroup;
             document.getElementById('t-editSave').innerText = t.save;
             // Language switcher
-            document.getElementById('lang-switcher').innerText = '🌐 ' + (lang === 'ru' ? 'EN' : 'RU');
+            document.getElementById('lang-switcher').innerText = '🌐 ' + (lang === 'ru' ? 'RU' : 'EN');
         }
 
         function applyLanguage(newLang) {
@@ -925,6 +939,7 @@
         let activeTimerAppId = null;
         let pendingProjectData = null;
         let projectToEdit = null;
+        let visibilityStats = {};
 
         // --- API Calls ---
         let availableAppsLoaded = false;
@@ -999,16 +1014,17 @@
                 const response = await fetch(`${API_BASE}/projects/${userId}`);
                 const data = await response.json();
                 
-                myProjects = data.map(project => ({
+                const projectsList = data.projects || [];
+                visibilityStats = data.visibility || {};
+                
+                myProjects = projectsList.map(project => ({
                     id: project.app_id,
                     name: project.name,
                     package: project.package_name,
                     icon_url: project.icon_url,
                     google_group_url: project.google_group_url,
                     instructions: project.instructions || '',
-                    testers: project.testers || [],
-                    created_at: project.created_at || null,
-                    days_since_publish: project.days_since_publish || 0
+                    testers: project.testers || []
                 }));
                 
                 renderProjects();
@@ -1264,7 +1280,7 @@
                             </div>
                         </div>
                         <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 12px;">
-                            ${app.days_since_publish ? t.daysSince.replace('{days}', app.days_since_publish) + ' · ' : ''}👥 ${t.activeTesters}: <b>${app.active_testers_count}</b>
+                            ${app.is_new ? `<span style="color: #34c759; font-weight: 600;">${t.newBadge}</span> · ` : ''}👥 ${t.activeTesters}: <b>${app.active_testers_count}</b>
                         </div>
                         ${devInfoHtml}
                         <div class="action-row">
@@ -1300,6 +1316,49 @@
             reminder.style.cssText = "background-color: rgba(255, 204, 0, 0.2); color: var(--text-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;";
             reminder.innerText = t.deleteReminder;
             container.appendChild(reminder);
+
+            // Visibility stats block
+            if (visibilityStats && Object.keys(visibilityStats).length > 0) {
+                const vs = visibilityStats;
+                const statusColor = vs.is_visible ? '#34c759' : '#ff3b30';
+                const statusText = vs.is_visible ? t.visibilityPublic : t.visibilityPrivate;
+                const rankText = t.rankLabel.replace('{rank}', vs.rank).replace('{total}', vs.total_developers);
+
+                let statsHtml = `
+                    <div style="background: linear-gradient(135deg, ${vs.is_visible ? 'rgba(52,199,89,0.08)' : 'rgba(255,59,48,0.08)'}, var(--secondary-bg-color)); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid ${vs.is_visible ? 'rgba(52,199,89,0.25)' : 'rgba(255,59,48,0.25)'};">
+                        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">${t.visibilityTitle}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size: 14px; font-weight: 600; color: ${statusColor};">${statusText}</span>
+                            <span style="font-size: 13px; color: var(--hint-color);">${rankText}</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px;">⚡ ${t.activeTestsLabel}: <b style="color: var(--text-color);">${vs.my_active_tests}</b>/3</div>
+                `;
+
+                if (!vs.is_visible && !vs.is_new && vs.need_more > 0) {
+                    statsHtml += `<div style="font-size: 13px; color: #ff9500; margin-top: 4px;">${t.needMore.replace('{count}', vs.need_more)}</div>`;
+                }
+                if (vs.is_new) {
+                    statsHtml += `<div style="font-size: 13px; color: #34c759; margin-top: 4px;">${t.newBadge}</div>`;
+                }
+
+                statsHtml += `
+                        <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(142,142,147,0.1); color: var(--hint-color);">${t.topLabel.replace('{n}', '1').replace('{count}', vs.top1)}</span>
+                            <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(142,142,147,0.1); color: var(--hint-color);">${t.topLabel.replace('{n}', '3').replace('{count}', vs.top3)}</span>
+                            <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(142,142,147,0.1); color: var(--hint-color);">${t.topLabel.replace('{n}', '5').replace('{count}', vs.top5)}</span>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', statsHtml);
+            }
+
+            // Visibility hint when hidden
+            if (visibilityStats && !visibilityStats.is_visible && !visibilityStats.is_new) {
+                const hintDiv = document.createElement('div');
+                hintDiv.style.cssText = "background-color: rgba(255, 149, 0, 0.15); color: var(--text-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;";
+                hintDiv.innerText = t.visibilityHint;
+                container.appendChild(hintDiv);
+            }
 
             const today = getLocalDate();
             const todayDate = new Date(today);
@@ -1382,8 +1441,11 @@
                     testersHtml = `<p class="no-testers">${t.noTesters}</p>`;
                 }
                 
-                const daysSinceText = project.days_since_publish > 0 ? t.daysSince.replace('{days}', project.days_since_publish) : '';
-                const vitrineWarning = project.days_since_publish >= 30 ? `<div style="color: #ff9500; font-size: 13px; margin-bottom: 8px;">${t.vitrineExpired}</div>` : '';
+                const visibilityBadge = visibilityStats.is_new
+                    ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.newBadge}</span>`
+                    : visibilityStats.is_visible
+                        ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.visibilityPublic}</span>`
+                        : `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,59,48,0.15); color: #ff3b30; font-weight: 600;">${t.visibilityPrivate}</span>`;
                 
                 card.innerHTML = `
                     <div class="card-header" style="margin-bottom: 8px;">
@@ -1394,8 +1456,10 @@
                         </div>
                         <button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openEditModal(${project.id})">✏️</button>
                     </div>
-                    ${daysSinceText ? `<div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px;">${daysSinceText} · ${t.testersCountLabel}: ${project.testers ? project.testers.length : 0}</div>` : ''}
-                    ${vitrineWarning}
+                    <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        ${visibilityBadge}
+                        <span>${t.testersCountLabel}: ${project.testers ? project.testers.length : 0}</span>
+                    </div>
                     <div class="testers-section">
                         <div class="testers-title">${t.testersList} (${project.testers ? project.testers.length : 0})</div>
                         ${testersHtml}
