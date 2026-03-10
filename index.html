@@ -390,6 +390,44 @@
             opacity: 0.75;
         }
 
+        .seg-control {
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(142, 142, 147, 0.3);
+            margin-bottom: 8px;
+        }
+        .seg-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            background: var(--secondary-bg-color);
+            color: var(--hint-color);
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .seg-btn.active {
+            background: var(--button-color);
+            color: var(--button-text-color);
+        }
+
+        .lang-switcher {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 100;
+            background: var(--secondary-bg-color);
+            border: 1px solid rgba(142, 142, 147, 0.3);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--link-color);
+        }
+
         input::placeholder,
         textarea::placeholder {
             opacity: 0.5;
@@ -407,6 +445,9 @@
     </style>
 </head>
 <body>
+
+    <!-- Language Switcher -->
+    <button class="lang-switcher" id="lang-switcher" onclick="toggleLanguage()">🌐 EN</button>
 
     <!-- TAB 1: Мои тесты -->
     <div id="tab-tests" class="container tab-content active">
@@ -480,8 +521,20 @@
             </div>
             <div class="form-group">
                 <label class="form-label" id="t-googleGroup">Ссылка на Google Group</label>
-                <div class="form-hint helper-quote" id="t-groupHint"> Вставьте свою или оставьте текущую и в Play Console добавив тестером эту группу: <span class="copyable-email" onclick="copyEmail()">google-play-dev-test@googlegroups.com 📋</span></div>
-                <input type="url" id="app-group" class="form-input" placeholder="https://groups.google.com/g/google-play-dev-test">
+                <div class="seg-control">
+                    <button type="button" class="seg-btn active" id="seg-standard" onclick="switchGroupTab('standard')">Standard</button>
+                    <button type="button" class="seg-btn" id="seg-custom" onclick="switchGroupTab('custom')">Custom</button>
+                </div>
+                <div id="group-standard-block">
+                    <div style="display: flex; align-items: center; gap: 8px; background: var(--secondary-bg-color); padding: 12px; border-radius: 8px;">
+                        <span style="font-size: 14px; color: var(--link-color); font-weight: 500; word-break: break-all;">google-play-dev-test@googlegroups.com</span>
+                        <button type="button" class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; flex-shrink: 0;" onclick="copyEmail()">📋</button>
+                    </div>
+                    <div class="form-hint helper-quote" id="t-groupHint" style="margin-top: 8px;">Добавьте эту группу как тестера в Play Console</div>
+                </div>
+                <div id="group-custom-block" style="display: none;">
+                    <input type="url" id="app-group" class="form-input" placeholder="https://groups.google.com/g/your-group">
+                </div>
             </div>
             <details style="margin-bottom: 16px;">
                 <summary style="font-size: 14px; font-weight: 500; color: var(--link-color); cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;" id="t-optionalSettings"><span id="t-optionalSettingsText">⚙️ Дополнительные настройки (необязательно)</span><span class="details-arrow">▼</span></summary>
@@ -579,11 +632,9 @@
         
         const API_BASE = 'https://devtest-backend.onrender.com/api';
         
-        // Default to 'ru' if outside Telegram, else 'en' if not 'ru'
-        let lang = 'ru';
-        if (Object.keys(initData).length > 0) {
-            lang = (langCode === 'ru') ? 'ru' : 'en';
-        }
+        // Language detection cascade: localStorage → Telegram initData
+        // API sync happens asynchronously after init
+        let lang = localStorage.getItem('app_language') || ((Object.keys(initData).length > 0) ? ((langCode === 'ru') ? 'ru' : 'en') : 'ru');
 
         const dict = {
             ru: {
@@ -654,7 +705,30 @@
                 inviteBlock2Title: "💬 Предложить взаимный тест в ЛС",
                 inviteBlock2Btn: "Скопировать и открыть Избранное",
                 inviteBlock3Title: "🔗 Только инвайт-ссылка",
-                inviteBlock3Btn: "Скопировать и открыть Избранное"
+                inviteBlock3Btn: "Скопировать и открыть Избранное",
+                // Segmented control
+                groupStandard: "Стандартная",
+                groupCustom: "Своя группа",
+                standardGroupHint: "Добавьте эту группу как тестера в Play Console",
+                // Status labels
+                statusNotOpened: "Ещё не открывал",
+                statusToday: "Сегодня",
+                statusYesterday: "Вчера",
+                statusDaysAgo: "дн. назад",
+                // Timer
+                timerRemaining: "⏳ Осталось {sec} сек...",
+                antiFraudAlert: "❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.",
+                confirmed: "✅ Засчитано!",
+                // Project info
+                daysSince: "📅 День {days}/30",
+                testersCountLabel: "👥 Тестеров",
+                vitrineExpired: "⚠️ Витрина закрыта (30+ дней)",
+                // Bell notification
+                bellNotifyMsg: "Привет! 👀 Кажется, ты затерялся в матрице и забыл про ежедневный тест моего приложения «{name}»! Забегай в бота сделать спасительный чекин, пока Google нас не покарал 😅: https://t.me/Android12TestersBot",
+                // Delete tester
+                deleteTesterConfirm: "Удалить тестера @{name} из этого проекта?",
+                // Open button
+                openBtn: "📱 Открыть"
             },
             en: {
                 tabTests: "My Tests",
@@ -724,19 +798,37 @@
                 inviteBlock2Title: "💬 Offer mutual test in DM",
                 inviteBlock2Btn: "Copy and open Saved Messages",
                 inviteBlock3Title: "🔗 Just the invite link",
-                inviteBlock3Btn: "Copy and open Saved Messages"
+                inviteBlock3Btn: "Copy and open Saved Messages",
+                // Segmented control
+                groupStandard: "Standard",
+                groupCustom: "Custom group",
+                standardGroupHint: "Add this group as a tester in Play Console",
+                // Status labels
+                statusNotOpened: "Not opened yet",
+                statusToday: "Today",
+                statusYesterday: "Yesterday",
+                statusDaysAgo: "days ago",
+                // Timer
+                timerRemaining: "⏳ {sec} sec left...",
+                antiFraudAlert: "❌ Fast clicking will kill stats for both of us! Google Play checks engagement. Spend these 15 seconds honestly testing the open app (click around the menu) so we all pass moderation.",
+                confirmed: "✅ Counted!",
+                // Project info
+                daysSince: "📅 Day {days}/30",
+                testersCountLabel: "👥 Testers",
+                vitrineExpired: "⚠️ Showcase closed (30+ days)",
+                // Bell notification
+                bellNotifyMsg: "Hey! 👀 Looks like you forgot about the daily test of my app \"{name}\"! Open the bot and do a check-in before Google punishes us 😅: https://t.me/Android12TestersBot",
+                // Delete tester
+                deleteTesterConfirm: "Remove tester @{name} from this project?",
+                // Open button
+                openBtn: "📱 Open"
             }
         };
 
-        const t = dict[lang];
+        let t = dict[lang];
 
         // Apply translations to static UI
-        document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('hideBanner') === 'true') {
-                const banner = document.getElementById('main-banner');
-                if (banner) banner.style.display = 'none';
-            }
-
+        function applyStaticTranslations() {
             document.getElementById('t-tabTests').innerText = t.tabTests;
             document.getElementById('t-tabProjects').innerText = t.tabProjects;
             document.getElementById('t-testsTitle').innerText = t.tabTests;
@@ -749,7 +841,9 @@
             document.getElementById('t-appName').innerText = t.appName;
             document.getElementById('t-packageName').innerText = t.packageName;
             document.getElementById('t-googleGroup').innerText = t.googleGroup;
-            document.getElementById('t-groupHint').innerHTML = t.groupHint;
+            document.getElementById('t-groupHint').innerText = t.standardGroupHint;
+            document.getElementById('seg-standard').innerText = t.groupStandard;
+            document.getElementById('seg-custom').innerText = t.groupCustom;
             document.getElementById('t-iconUrl').innerText = t.iconUrl;
             document.getElementById('t-save').innerText = t.save;
             document.getElementById('t-bannerText').innerText = t.bannerText;
@@ -761,8 +855,6 @@
             document.getElementById('t-optionalSettingsText').innerText = t.optionalSettings;
             document.getElementById('t-instructions').innerText = t.instructions;
             document.getElementById('app-instructions').placeholder = t.instPlaceholder;
-
-            // New modal translations
             document.getElementById('t-emailWarningTitle').innerText = t.emailWarningTitle;
             document.getElementById('t-emailWarningText').innerText = t.emailWarningText;
             document.getElementById('t-emailWarningYes').innerText = t.emailWarningYes;
@@ -775,6 +867,51 @@
             document.getElementById('t-editPackage').innerText = t.editPackage;
             document.getElementById('t-editGroup').innerText = t.googleGroup;
             document.getElementById('t-editSave').innerText = t.save;
+            // Language switcher
+            document.getElementById('lang-switcher').innerText = '🌐 ' + (lang === 'ru' ? 'EN' : 'RU');
+        }
+
+        function applyLanguage(newLang) {
+            lang = newLang;
+            t = dict[lang];
+            localStorage.setItem('app_language', lang);
+            // Sync to backend
+            fetch(`${API_BASE}/users/${userId}/language`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: lang })
+            }).catch(e => console.error('Language sync error:', e));
+            // Re-apply everything
+            applyStaticTranslations();
+            renderTests();
+            renderProjects();
+            if (availableAppsLoaded) renderAvailableApps();
+        }
+
+        function toggleLanguage() {
+            applyLanguage(lang === 'ru' ? 'en' : 'ru');
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('hideBanner') === 'true') {
+                const banner = document.getElementById('main-banner');
+                if (banner) banner.style.display = 'none';
+            }
+
+            applyStaticTranslations();
+
+            // Async language sync from API (if not in localStorage)
+            if (!localStorage.getItem('app_language')) {
+                fetch(`${API_BASE}/users/${userId}/language`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.language && data.language !== lang) {
+                            applyLanguage(data.language);
+                        }
+                    })
+                    .catch(() => {});
+            }
 
             // Load real data from backend
             loadTasks();
@@ -869,7 +1006,9 @@
                     icon_url: project.icon_url,
                     google_group_url: project.google_group_url,
                     instructions: project.instructions || '',
-                    testers: project.testers || []
+                    testers: project.testers || [],
+                    created_at: project.created_at || null,
+                    days_since_publish: project.days_since_publish || 0
                 }));
                 
                 renderProjects();
@@ -945,10 +1084,10 @@
                     if (isScreenshotDay) {
                         actionsHtml = `
                             <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <button class="btn btn-secondary" style="width: 100%; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openLink('https://play.google.com/store/apps/details?id=${test.package}')">
-                                    📱 Открыть
+                                <button class="btn btn-secondary" style="width: 100%; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="startTimer(${test.id}, '${test.package}', true, '${test.owner_username || ''}')">
+                                    ${t.openBtn}
                                 </button>
-                                <button id="btn-confirm-${test.id}" class="btn btn-success" style="width: 100%;" onclick="handleScreenshotAndConfirm(${test.id}, '${test.owner_username || ''}')">
+                                <button id="btn-confirm-${test.id}" class="btn" style="width: 100%; background-color: rgba(142, 142, 147, 0.2); color: var(--hint-color); cursor: not-allowed;" disabled>
                                     💬 ${t.screenshotBtn}
                                 </button>
                                 <div style="color: #ff3b30; font-size: 13px; text-align: center;">
@@ -959,8 +1098,8 @@
                     } else {
                         actionsHtml = `
                             <div class="action-row">
-                                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="startTimer(${test.id}, '${test.package}')">
-                                    📱 Открыть
+                                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="startTimer(${test.id}, '${test.package}', false, '')">
+                                    ${t.openBtn}
                                 </button>
                                 <button id="btn-confirm-${test.id}" class="btn" style="flex: 2; background-color: rgba(142, 142, 147, 0.2); color: var(--hint-color); cursor: not-allowed;" disabled>
                                     ${t.confirmStart}
@@ -1125,7 +1264,7 @@
                             </div>
                         </div>
                         <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 12px;">
-                            👥 ${t.activeTesters}: <b>${app.active_testers_count}</b>
+                            ${app.days_since_publish ? t.daysSince.replace('{days}', app.days_since_publish) + ' · ' : ''}👥 ${t.activeTesters}: <b>${app.active_testers_count}</b>
                         </div>
                         ${devInfoHtml}
                         <div class="action-row">
@@ -1192,23 +1331,23 @@
                         let statusHtml = '';
                         let showBell = false;
                         if (!tester.last_check_date) {
-                            statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${lang === 'ru' ? 'Ещё не открывал' : 'Not opened yet'}</span>`;
+                            statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${t.statusNotOpened}</span>`;
                             showBell = true;
                         } else if (tester.last_check_date === today) {
-                            statusHtml = `<span style="color: #34c759; font-weight: 500; font-size: 13px;">🟢 ${lang === 'ru' ? 'Сегодня' : 'Today'}</span>`;
+                            statusHtml = `<span style="color: #34c759; font-weight: 500; font-size: 13px;">🟢 ${t.statusToday}</span>`;
                         } else {
                             const daysDiff = getDaysDiff(tester.last_check_date);
                             if (daysDiff === 1) {
-                                statusHtml = `<span style="color: #ffcc00; font-weight: 500; font-size: 13px;">🟡 ${lang === 'ru' ? 'Вчера' : 'Yesterday'}</span>`;
+                                statusHtml = `<span style="color: #ffcc00; font-weight: 500; font-size: 13px;">🟡 ${t.statusYesterday}</span>`;
                             } else {
-                                statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${daysDiff} ${lang === 'ru' ? 'дней назад' : 'days ago'}</span>`;
+                                statusHtml = `<span style="color: #ff3b30; font-weight: 500; font-size: 13px;">🔴 ${daysDiff} ${t.statusDaysAgo}</span>`;
                                 showBell = true;
                             }
                         }
                         
                         let bellHtml = '';
                         if (showBell && cleanUsername) {
-                            const msg = `Привет! 👀 Кажется, ты затерялся в матрице и забыл про ежедневный тест моего приложения «${project.name}»! Забегай в бота сделать спасительный чекин, пока Google нас не покарал 😅: https://t.me/Android12TestersBot`;
+                            const msg = t.bellNotifyMsg.replace('{name}', project.name);
                             bellHtml = `<a href="javascript:void(0);" onclick="tg.openTelegramLink('https://t.me/${cleanUsername}?text=${encodeURIComponent(msg)}')" style="text-decoration: none; font-size: 16px;">🔔</a>`;
                         }
 
@@ -1243,8 +1382,11 @@
                     testersHtml = `<p class="no-testers">${t.noTesters}</p>`;
                 }
                 
+                const daysSinceText = project.days_since_publish > 0 ? t.daysSince.replace('{days}', project.days_since_publish) : '';
+                const vitrineWarning = project.days_since_publish >= 30 ? `<div style="color: #ff9500; font-size: 13px; margin-bottom: 8px;">${t.vitrineExpired}</div>` : '';
+                
                 card.innerHTML = `
-                    <div class="card-header" style="margin-bottom: 12px;">
+                    <div class="card-header" style="margin-bottom: 8px;">
                         ${renderIcon(project.name, project.icon_url)}
                         <div class="card-info">
                             <div class="card-title">${project.name}</div>
@@ -1252,6 +1394,8 @@
                         </div>
                         <button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openEditModal(${project.id})">✏️</button>
                     </div>
+                    ${daysSinceText ? `<div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px;">${daysSinceText} · ${t.testersCountLabel}: ${project.testers ? project.testers.length : 0}</div>` : ''}
+                    ${vitrineWarning}
                     <div class="testers-section">
                         <div class="testers-title">${t.testersList} (${project.testers ? project.testers.length : 0})</div>
                         ${testersHtml}
@@ -1270,7 +1414,7 @@
         }
 
         // --- Actions ---
-        function startTimer(id, pkg) {
+        function startTimer(id, pkg, isScreenshotDay = false, ownerUsername = '') {
             // Повторный клик на то же приложение — просто открыть Google Play
             if (activeTimerAppId === id) {
                 tg.openLink(`https://play.google.com/store/apps/details?id=${pkg}`);
@@ -1279,8 +1423,8 @@
             
             // Таймер идёт для другого приложения
             if (activeTimerAppId !== null && activeTimerAppId !== id) {
-                if (tg.showAlert) tg.showAlert('❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.');
-                else alert('❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.');
+                if (tg.showAlert) tg.showAlert(t.antiFraudAlert);
+                else alert(t.antiFraudAlert);
                 return;
             }
 
@@ -1294,7 +1438,7 @@
             
             activeTimerAppId = id;
             let timeLeft = 15;
-            btn.innerText = `⏳ Осталось ${timeLeft} сек...`;
+            btn.innerText = t.timerRemaining.replace('{sec}', timeLeft);
             
             const timerId = setInterval(() => {
                 timeLeft--;
@@ -1305,11 +1449,16 @@
                     btn.style.backgroundColor = 'var(--success-color)';
                     btn.style.color = '#fff';
                     btn.style.cursor = 'pointer';
-                    btn.innerText = t.confirmStart;
-                    btn.onclick = () => confirmStart(id);
+                    if (isScreenshotDay) {
+                        btn.innerText = '💬 ' + t.screenshotBtn;
+                        btn.onclick = () => handleScreenshotAndConfirm(id, ownerUsername);
+                    } else {
+                        btn.innerText = t.confirmStart;
+                        btn.onclick = () => confirmStart(id);
+                    }
                     if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    btn.innerText = `⏳ Осталось ${timeLeft} сек...`;
+                    btn.innerText = t.timerRemaining.replace('{sec}', timeLeft);
                 }
             }, 1000);
         }
@@ -1393,7 +1542,7 @@
             const btn = document.getElementById(`btn-confirm-${id}`);
             
             if (btn) {
-                btn.innerText = "✅ Засчитано!";
+                btn.innerText = t.confirmed;
                 btn.style.backgroundColor = "#2e7d32";
                 btn.style.color = "#ffffff";
                 btn.disabled = true;
@@ -1586,7 +1735,7 @@
         }
 
         async function deleteTester(appId, testerId, testerName) {
-            if (!window.confirm(`Удалить тестера @${testerName} из этого проекта?`)) return;
+            if (!window.confirm(t.deleteTesterConfirm.replace('{name}', testerName))) return;
             
             try {
                 const response = await fetch(`${API_BASE}/projects/${appId}/testers/${testerId}`, {
@@ -1678,7 +1827,27 @@
                 document.getElementById('app-icon').value = '';
                 document.getElementById('app-instructions').value = '';
                 document.getElementById('package-error').style.display = 'none';
+                // Reset segmented control to Standard
+                switchGroupTab('standard');
             }, 300);
+        }
+
+        function switchGroupTab(tab) {
+            const stdBtn = document.getElementById('seg-standard');
+            const custBtn = document.getElementById('seg-custom');
+            const stdBlock = document.getElementById('group-standard-block');
+            const custBlock = document.getElementById('group-custom-block');
+            if (tab === 'standard') {
+                stdBtn.classList.add('active');
+                custBtn.classList.remove('active');
+                stdBlock.style.display = '';
+                custBlock.style.display = 'none';
+            } else {
+                stdBtn.classList.remove('active');
+                custBtn.classList.add('active');
+                stdBlock.style.display = 'none';
+                custBlock.style.display = '';
+            }
         }
 
         async function saveProject() {
@@ -1686,9 +1855,12 @@
 
             const nameInput = document.getElementById('app-name').value.trim();
             let packageInput = document.getElementById('app-package').value.trim();
-            const groupInput = document.getElementById('app-group').value.trim();
             const iconInput = document.getElementById('app-icon').value.trim();
             const instructionsInput = document.getElementById('app-instructions').value.trim();
+            
+            // Determine group URL based on segmented control
+            const isStandard = document.getElementById('seg-standard').classList.contains('active');
+            const groupInput = isStandard ? '' : document.getElementById('app-group').value.trim();
 
             if (!packageInput.includes('play.google.com/store/apps/details?id=')) {
                 document.getElementById('package-error').innerText = t.invalidPlayLink;
@@ -1713,8 +1885,8 @@
                 // Ignore URL parsing errors
             }
 
-            // Если группа пустая — показать предупреждение
-            if (!groupInput) {
+            // Если Standard группа — показать предупреждение
+            if (isStandard) {
                 pendingProjectData = {
                     owner_id: userId,
                     name: nameInput,
