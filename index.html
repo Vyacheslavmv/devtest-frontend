@@ -417,7 +417,7 @@
             position: fixed;
             top: 8px;
             right: 8px;
-            z-index: 100;
+            z-index: 9999;
             background: var(--secondary-bg-color);
             border: 1px solid rgba(142, 142, 147, 0.3);
             border-radius: 20px;
@@ -426,6 +426,10 @@
             font-weight: 600;
             cursor: pointer;
             color: var(--link-color);
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
         input::placeholder,
@@ -706,6 +710,9 @@
                 inviteBlock2Btn: "Скопировать и открыть Избранное",
                 inviteBlock3Title: "🔗 Только инвайт-ссылка",
                 inviteBlock3Btn: "Скопировать и открыть Избранное",
+                inviteDescLabel: "ℹ️ Описание: ",
+                inviteBlock1Text: "📱 Приложение: {name}{instr}\n🤖 Взять на тест (ссылка в трекер):\n👉 {link}\n\nБеру ваши проекты в ответ! Бот поможет не забывать про ежедневные клики и прозрачно проверять тестеров.",
+                inviteBlock2Text: "Привет! Взаимный тест? Мое приложение: {name}.\n\nЯ использую бота в TG для учета — не нужно каждый день списываться, бот всё трекает сам.\n\nДобавь свой проект в систему, присылай мне инвайт, я сразу возьму на тест!\n\nМоя ссылка: {link}",
                 // Segmented control
                 groupStandard: "Стандартная",
                 groupCustom: "Своя группа",
@@ -721,7 +728,7 @@
                 confirmed: "✅ Засчитано!",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
-                visibilityPrivate: "🔴 Скрыто с Витрины",
+                visibilityPrivate: "🔴 Скрыто из публичной Витрины",
                 visibilityHint: "Тестируйте чужие приложения, чтобы ваши стали видны на Витрине (нужно ≥3 активных тестов за 72ч)",
                 visibilityTitle: "📊 Видимость на Витрине",
                 activeTestsLabel: "Ваших активных тестов",
@@ -806,6 +813,9 @@
                 inviteBlock2Btn: "Copy and open Saved Messages",
                 inviteBlock3Title: "🔗 Just the invite link",
                 inviteBlock3Btn: "Copy and open Saved Messages",
+                inviteDescLabel: "ℹ️ Description: ",
+                inviteBlock1Text: "📱 App: {name}{instr}\n🤖 Take for testing (tracker link):\n👉 {link}\n\nI'll test yours in return! The bot helps track daily check-ins and transparently monitor testers.",
+                inviteBlock2Text: "Hey! Mutual test? My app: {name}.\n\nI use a TG bot for tracking — no need to message daily, the bot tracks everything.\n\nAdd your project to the system, send me an invite, I'll start testing right away!\n\nMy link: {link}",
                 // Segmented control
                 groupStandard: "Standard",
                 groupCustom: "Custom group",
@@ -821,7 +831,7 @@
                 confirmed: "✅ Counted!",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
-                visibilityPrivate: "🔴 Hidden from Showcase",
+                visibilityPrivate: "🔴 Hidden from public Showcase",
                 visibilityHint: "Test others' apps to make yours visible on the Showcase (need ≥3 active tests in 72h)",
                 visibilityTitle: "📊 Showcase Visibility",
                 activeTestsLabel: "Your active tests",
@@ -1328,10 +1338,10 @@
                     <div style="background: linear-gradient(135deg, ${vs.is_visible ? 'rgba(52,199,89,0.08)' : 'rgba(255,59,48,0.08)'}, var(--secondary-bg-color)); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid ${vs.is_visible ? 'rgba(52,199,89,0.25)' : 'rgba(255,59,48,0.25)'};">
                         <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">${t.visibilityTitle}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-size: 14px; font-weight: 600; color: ${statusColor};">${statusText}</span>
+                            <span style="font-size: 14px; font-weight: 600; color: ${statusColor}; cursor: pointer;" onclick="showVisibilityToast()">${statusText}</span>
                             <span style="font-size: 13px; color: var(--hint-color);">${rankText}</span>
                         </div>
-                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px;">⚡ ${t.activeTestsLabel}: <b style="color: var(--text-color);">${vs.my_active_tests}</b>/3</div>
+                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px; cursor: pointer;" onclick="showActiveTestsToast()">⚡ ${t.activeTestsLabel}: <b style="color: var(--text-color);">${vs.my_active_tests}</b>/3</div>
                 `;
 
                 if (!vs.is_visible && !vs.is_new && vs.need_more > 0) {
@@ -1445,7 +1455,7 @@
                     ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.newBadge}</span>`
                     : visibilityStats.is_visible
                         ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.visibilityPublic}</span>`
-                        : `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,59,48,0.15); color: #ff3b30; font-weight: 600;">${t.visibilityPrivate}</span>`;
+                        : `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,59,48,0.15); color: #ff3b30; font-weight: 600; cursor: pointer;" onclick="showVisibilityToast()">${t.visibilityPrivate}</span>`;
                 
                 card.innerHTML = `
                     <div class="card-header" style="margin-bottom: 8px;">
@@ -1576,15 +1586,20 @@
             }, 1000);
         }
 
-        function handleScreenshotAndConfirm(id, ownerUsername) {
+        async function handleScreenshotAndConfirm(id, ownerUsername) {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            if (ownerUsername) {
-                tg.openTelegramLink(`https://t.me/${ownerUsername}`);
+            await confirmStart(id);
+            if (tg.showAlert) {
+                tg.showAlert(t.screenshotDayAlert, () => {
+                    if (ownerUsername) {
+                        tg.openTelegramLink(`https://t.me/${ownerUsername}`);
+                    }
+                });
+            } else {
+                if (ownerUsername) {
+                    tg.openTelegramLink(`https://t.me/${ownerUsername}`);
+                }
             }
-            setTimeout(async () => {
-                await confirmStart(id);
-                if (tg.showAlert) tg.showAlert(t.screenshotDayAlert);
-            }, 1000);
         }
 
         function copyGroupUrl(url) {
@@ -1597,6 +1612,35 @@
         function showScreenshotDayAlert() {
             if (tg.showAlert) tg.showAlert(t.screenshotDayOwnerAlert);
             else alert(t.screenshotDayOwnerAlert);
+        }
+
+        function showVisibilityToast() {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            showToast(t.visibilityHint);
+        }
+
+        function showActiveTestsToast() {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            const need = visibilityStats.need_more || 0;
+            if (need > 0) {
+                showToast(t.needMore.replace('{count}', need));
+            } else {
+                showToast(t.visibilityPublic);
+            }
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById('custom-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'custom-toast';
+                toast.style.cssText = 'position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translate3d(0,0,0); background: var(--text-color); color: var(--bg-color); padding: 10px 20px; border-radius: 12px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; text-align: center; max-width: 85%;';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = message;
+            toast.style.opacity = '1';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
         }
 
         async function confirmStart(id) {
@@ -1742,11 +1786,11 @@
             if (!project) return;
 
             const link = `https://t.me/Android12TestersBot?start=app_${project.id}`;
-            const instrLine = project.instructions ? `\nℹ️ Описание: ${project.instructions}` : '';
+            const instrLine = project.instructions ? `\n${t.inviteDescLabel}${project.instructions}` : '';
 
-            const block1Text = `📱 Приложение: ${project.name}${instrLine}\n🤖 Взять на тест (ссылка в трекер):\n👉 ${link}\n\nБеру ваши проекты в ответ! Бот поможет не забывать про ежедневные клики и прозрачно проверять тестеров.`;
+            const block1Text = t.inviteBlock1Text.replace('{name}', project.name).replace('{instr}', instrLine).replace('{link}', link);
 
-            const block2Text = `Привет! Взаимный тест? Мое приложение: ${project.name}.\n\nЯ использую бота в TG для учета — не нужно каждый день списываться, бот всё трекает сам.\n\nДобавь свой проект в систему, присылай мне инвайт, я сразу возьму на тест!\n\nМой ссылка: ${link}`;
+            const block2Text = t.inviteBlock2Text.replace('{name}', project.name).replace('{link}', link);
 
             const block3Text = link;
 
