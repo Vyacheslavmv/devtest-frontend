@@ -543,6 +543,29 @@
             cursor: pointer;
         }
         .retry-btn:active { opacity: 0.7; }
+
+        /* Instruction chips */
+        .chip-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .chip-scroll::-webkit-scrollbar { display: none; }
+        .chip {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            background: rgba(142, 142, 147, 0.15);
+            color: var(--text-color);
+            cursor: pointer;
+            white-space: nowrap;
+            border: none;
+        }
+        .chip:active { opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -555,6 +578,7 @@
         <div class="banner" id="main-banner" style="background-color: var(--secondary-bg-color); padding: 16px; border-radius: 16px; margin-bottom: 16px; position: relative;">
             <button onclick="closeBanner()" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 16px; color: var(--hint-color); cursor: pointer; padding: 4px;">✖</button>
             <p id="t-bannerText" style="margin: 0; color: var(--text-color); font-size: 14px; line-height: 1.4; padding-right: 20px;">Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.</p>
+            <p id="t-disclaimerText" style="margin: 8px 0 0 0; color: var(--hint-color); font-size: 12px; line-height: 1.4; padding-right: 20px;"></p>
         </div>
         <h2 id="t-testsTitle">Мои тесты</h2>
         <p id="t-testsDesc">Приложения, которые вы должны открывать каждый день.</p>
@@ -644,8 +668,9 @@
                     <input type="url" id="app-icon" class="form-input" placeholder="https://example.com/icon.png">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" id="t-instructions">Пожелания к тесту / Инструкции</label>
-                    <textarea id="app-instructions" class="form-input" rows="3" style="resize: none;" placeholder="Например: Жду скриншот запуска раз в 3 дня в личку"></textarea>
+                    <label class="form-label" id="t-instructions">Инструкции</label>
+                    <textarea id="app-instructions" class="form-input" rows="3" style="resize: none;" maxlength="1000" placeholder="Дайте любые инструкции (до 1000 символов)"></textarea>
+                    <div id="chips-instructions" class="chip-scroll"></div>
                 </div>
             </details>
             <button class="btn btn-primary" onclick="saveProject()" id="t-save">Сохранить</button>
@@ -701,8 +726,9 @@
                 <input type="text" id="edit-name" class="form-input">
             </div>
             <div class="form-group">
-                <label class="form-label" id="t-editDescription">Пожелания к тесту / Инструкции</label>
-                <textarea id="edit-description" class="form-input" rows="3" style="resize: none;"></textarea>
+                <label class="form-label" id="t-editDescription">Инструкции</label>
+                <textarea id="edit-description" class="form-input" rows="3" style="resize: none;" maxlength="1000"></textarea>
+                <div id="chips-edit-instructions" class="chip-scroll"></div>
             </div>
             <div class="form-group">
                 <label class="form-label" id="t-editIconUrl">Ссылка на иконку</label>
@@ -787,8 +813,8 @@
                 confirmDeleteBtn: "Завершить и удалить",
                 invalidPlayLink: "❌ Неверный формат. Ссылка должна выглядеть так: https://play.google.com/store/apps/details?id=com.example.app",
                 optionalSettings: "⚙️ Дополнительные настройки (необязательно)",
-                instructions: "Пожелания к тесту / Инструкции",
-                instPlaceholder: "Например: Жду скриншот запуска раз в 3 дня в личку",
+                instructions: "Инструкции",
+                instPlaceholder: "Дайте любые инструкции (до 1000 символов)",
                 devInfo: "Доп. информация от разработчика 📌",
                 emailWarningTitle: "⚠️ Внимание",
                 emailWarningText: "⚠️ Вы не указали свою Google Группу. Будет использована стандартная. Вы точно добавили почту этой группы в вашу Play Console? Без этого тестеры получат ошибку.",
@@ -803,7 +829,7 @@
                 screenshotDayOwnerAlert: "У данного тестировщика сегодня день обязательного скриншота! Вы должны получить от него скриншот в личные сообщения.",
                 screenshotReminderTitle: "📸 Сегодня был обязательный день скриншота",
                 screenshotReminderText: "Если вы ещё не отправили разработчику скриншот запуска в личные сообщения, вернитесь в диалог и отправьте его. Повторные пропуски могут привести к блокировке.",
-                screenshotReminderBtn: "💬 Открыть ЛС и отправить",
+                screenshotReminderBtn: "💬 Отправить скриншот",
                 inviteModalTitle: "Пригласить тестеров",
                 inviteClose: "Закрыть",
                 inviteBlock1Title: "📢 Опубликовать на нашей Бирже",
@@ -830,7 +856,24 @@
                 confirmed: "✅ Засчитано!",
                 daysShort: "📅 {days} дн.",
                 testersShort: "👥 {count}",
-                myTestDayShort: "🧪 Мой день {days}",
+                myTestDayShort: "📅 {days} день",
+                testDayExplain: "Вы тестируете это приложение {days}-й день из 14.\n\nДни обязательных скриншотов: 1, 7 и 14.\nВ эти дни необходимо отправить разработчику скриншот запуска приложения в личные сообщения.",
+                newBadgeUntil: "🆕 Новинка (до {date})",
+                newBadgeToast: "Приложение автоматически видно на витрине первые 72 часа после публикации. После этого видимость зависит от ваших активных тестов чужих приложений.",
+                disclaimerText: "⚠️ Платформа не гарантирует прохождение модерации Google Play. Каждое приложение оценивается Google индивидуально. Наличие 12 активных тестировщиков повышает шансы, но не является гарантией.",
+                // Instruction chips
+                chipBrowse: "Пройдись по всем экранам",
+                chipScreenshot3: "Скриншот каждые 3 дня в ЛС",
+                chipJustOpen: "Просто открой на 15 сек",
+                chipTryFeatures: "Попробуй основные функции",
+                chipLeaveReview: "Оставь отзыв после релиза",
+                // Karma
+                karmaLabel: "✨ Карма: {karma}",
+                karmaRewardGood: "👍 Хороший тестер",
+                karmaRewardBug: "🐛 Нашёл баг",
+                karmaToast: "✨ Награда отправлена тестеру!",
+                karmaAlreadyLiked: "Вы уже наградили этого тестера за это приложение",
+                karmaShowcase: "✨ {karma}",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
                 visibilityPrivate: "🔴 Скрыто из Витрины",
@@ -838,7 +881,7 @@
                 visibilityPartial: "🟡 Видно {visible} из {total}",
                 visibilityNone: "🔴 Не видно на Витрине",
                 visibilityHint: "Каждое ваше приложение требует 3 активных теста чужих приложений за 72ч. Новые приложения видны на витрине автоматически первые 3 дня.",
-                visibilityTitle: "📊 Видимость на Витрине",
+                visibilityTitle: "📊 Панель разработчика",
                 activeTestsLabel: "Ваших активных тестов",
                 rankLabel: "Рейтинг: #{rank} из {total}",
                 needMore: "Для видимости всех нужно ещё: {count}",
@@ -900,8 +943,8 @@
                 confirmDeleteBtn: "Finish and delete",
                 invalidPlayLink: "❌ Invalid format. Link should look like: https://play.google.com/store/apps/details?id=com.example.app",
                 optionalSettings: "⚙️ Advanced settings (optional)",
-                instructions: "Test requirements / Instructions",
-                instPlaceholder: "E.g.: Send a screenshot every 3 days in DM",
+                instructions: "Instructions",
+                instPlaceholder: "Give any instructions (less than 1000 characters)",
                 devInfo: "Additional info from developer 📌",
                 emailWarningTitle: "⚠️ Warning",
                 emailWarningText: "⚠️ You did not specify your Google Group. The default one will be used. Are you sure you added this group's email to your Play Console? Without it, testers will get an error.",
@@ -916,7 +959,7 @@
                 screenshotDayOwnerAlert: "This tester has a mandatory screenshot day today! You should receive a screenshot from them in private messages.",
                 screenshotReminderTitle: "📸 Today was a mandatory screenshot day",
                 screenshotReminderText: "If you still have not sent the developer a launch screenshot in direct messages, return to the chat and send it now. Repeated misses may lead to a ban.",
-                screenshotReminderBtn: "💬 Open DM and send it",
+                screenshotReminderBtn: "💬 Send Screenshot",
                 inviteModalTitle: "Invite testers",
                 inviteClose: "Close",
                 inviteBlock1Title: "📢 Post on our Exchange",
@@ -943,7 +986,24 @@
                 confirmed: "✅ Counted!",
                 daysShort: "📅 {days} d.",
                 testersShort: "👥 {count}",
-                myTestDayShort: "🧪 Your day {days}",
+                myTestDayShort: "📅 Day {days}",
+                testDayExplain: "You've been testing this app for {days} days out of 14.\n\nMandatory screenshot days: 1, 7, and 14.\nOn these days you must send the developer a launch screenshot via direct message.",
+                newBadgeUntil: "🆕 New (until {date})",
+                newBadgeToast: "The app is automatically visible on the showcase for the first 72 hours after publishing. After that, visibility depends on your active tests of other apps.",
+                disclaimerText: "⚠️ This platform does not guarantee passing Google Play moderation. Each app is evaluated by Google individually. Having 12 active testers improves your chances but does not guarantee approval.",
+                // Instruction chips
+                chipBrowse: "Go through all screens",
+                chipScreenshot3: "Screenshot every 3 days in DM",
+                chipJustOpen: "Just open for 15 sec",
+                chipTryFeatures: "Try the main features",
+                chipLeaveReview: "Leave a review after release",
+                // Karma
+                karmaLabel: "✨ Karma: {karma}",
+                karmaRewardGood: "👍 Good tester",
+                karmaRewardBug: "🐛 Found a bug",
+                karmaToast: "✨ Reward sent to the tester!",
+                karmaAlreadyLiked: "You already rewarded this tester for this app",
+                karmaShowcase: "✨ {karma}",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
                 visibilityPrivate: "🔴 Hidden from Showcase",
@@ -951,7 +1011,7 @@
                 visibilityPartial: "🟡 {visible} of {total} visible",
                 visibilityNone: "🔴 Not visible on Showcase",
                 visibilityHint: "Each of your apps requires 3 active tests of others' apps in 72h. New apps are automatically visible for the first 3 days.",
-                visibilityTitle: "📊 Showcase Visibility",
+                visibilityTitle: "📊 Developer Dashboard",
                 activeTestsLabel: "Your active tests",
                 rankLabel: "Rank: #{rank} of {total}",
                 needMore: "Need {count} more for all to be visible",
@@ -988,6 +1048,7 @@
             document.getElementById('t-iconUrl').innerText = t.iconUrl;
             document.getElementById('t-save').innerText = t.save;
             document.getElementById('t-bannerText').innerText = t.bannerText;
+            document.getElementById('t-disclaimerText').innerText = t.disclaimerText;
             document.getElementById('t-availableTitle').innerText = t.availableTitle;
             document.getElementById('t-deleteModalTitle').innerText = t.deleteModalTitle;
             document.getElementById('t-deleteMessageLabel').innerText = t.deleteMessageLabel;
@@ -1013,6 +1074,14 @@
             const dot = document.getElementById('loading-dot');
             const dotHtml = dot ? dot.outerHTML : '';
             switcher.innerHTML = '🌐 ' + (lang === 'ru' ? 'RU' : 'EN') + dotHtml;
+            // Instruction chips
+            const chipTexts = [t.chipBrowse, t.chipScreenshot3, t.chipJustOpen, t.chipTryFeatures, t.chipLeaveReview];
+            const renderChips = (containerId, textareaId) => {
+                const el = document.getElementById(containerId);
+                if (el) el.innerHTML = chipTexts.map(c => `<button type="button" class="chip" onclick="insertChip('${textareaId}', this.dataset.text)" data-text="${c.replace(/"/g, '&quot;')}">${c}</button>`).join('');
+            };
+            renderChips('chips-instructions', 'app-instructions');
+            renderChips('chips-edit-instructions', 'edit-description');
         }
 
         function applyLanguage(newLang) {
@@ -1222,8 +1291,15 @@
                     instructions: project.instructions || '',
                     testers: project.testers || [],
                     is_visible: project.is_visible || false,
-                    is_app_new: project.is_app_new || false
+                    is_app_new: project.is_app_new || false,
+                    created_at: project.created_at || null,
+                    likes: project.likes || []
                 }));
+                
+                // Store owner karma from visibility stats
+                if (data.karma !== undefined) {
+                    visibilityStats.ownerKarma = data.karma;
+                }
                 
                 renderProjects();
             } catch (error) {
@@ -1279,7 +1355,7 @@
             }
 
             const dmButton = test.owner_username
-                ? `<button class="btn btn-secondary" style="width: 100%; background-color: var(--bg-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="return openTelegramProfile('${test.owner_username}', event, true)">${t.screenshotReminderBtn}</button>`
+                ? `<button class="btn btn-secondary" style="width: 100%; background-color: var(--button-color, #007aff); color: var(--button-text-color, #fff); border: none;" onclick="return openTelegramProfile('${test.owner_username}', event)">${t.screenshotReminderBtn}</button>`
                 : '';
 
             return `
@@ -1300,7 +1376,9 @@
                 parts.push(t.testersShort.replace('{count}', activeTestersCount));
             }
             if (typeof userTestingDay === 'number' && userTestingDay > 0) {
-                parts.push(t.myTestDayShort.replace('{days}', userTestingDay));
+                const dayText = t.myTestDayShort.replace('{days}', userTestingDay);
+                const screenshotIcon = [1, 7, 14].includes(userTestingDay) ? ' 📸' : '';
+                parts.push(`<span style="cursor: pointer;" onclick="showTestDayPopup(${userTestingDay})">${dayText}${screenshotIcon}</span>`);
             }
             if (isNew) {
                 parts.unshift(`<span style="color: #34c759; font-weight: 600;">${t.newBadge}</span>`);
@@ -1311,7 +1389,7 @@
             return `<div style="font-size: 13px; color: var(--hint-color); margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">${parts.map(part => `<span>${part}</span>`).join('')}</div>`;
         }
 
-        function openTelegramProfile(username, event = null, closeApp = true) {
+        function openTelegramProfile(username, event = null) {
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1329,14 +1407,6 @@
                 } catch (fallbackError) {
                     window.location.href = url;
                 }
-            }
-
-            if (closeApp && tg.close) {
-                setTimeout(() => {
-                    try {
-                        tg.close();
-                    } catch (closeError) {}
-                }, 120);
             }
             return true;
         }
@@ -1420,7 +1490,7 @@
 
                 let ownerBtnHtml = '';
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event, true)">💬</button>`;
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event)">💬</button>`;
                 }
 
                 let devInfoHtml = '';
@@ -1501,7 +1571,7 @@
 
                 let ownerBtnHtml = '';
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event, true)">💬</button>`;
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event)">💬</button>`;
                 }
 
                 let devInfoHtml = '';
@@ -1577,11 +1647,12 @@
                                 <div class="card-title">${app.name}</div>
                                 <div class="card-subtitle">${app.package_name}</div>
                             </div>
+                            ${app.owner_karma ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,204,0,0.15); color: #ffcc00; font-weight: 600; margin-left: auto;">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</span>` : ''}
                         </div>
                         ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
                         ${devInfoHtml}
                         <div class="action-row">
-                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="return openTelegramProfile('${ownerUsername}', event, true)">
+                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="return openTelegramProfile('${ownerUsername}', event)">
                                 💬 ${t.contactOwner}
                             </button>
                             <button class="btn btn-primary" style="flex: 1;" onclick="takeAppToTest(${app.app_id})">
@@ -1646,6 +1717,7 @@
                             <span style="font-size: 14px; font-weight: 600; color: ${statusColor}; cursor: pointer;" onclick="showVisibilityToast()">${statusText}</span>
                             <span style="font-size: 13px; color: var(--hint-color);">${rankText}</span>
                         </div>
+                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px;">${t.karmaLabel.replace('{karma}', visibilityStats.ownerKarma || 0)}</div>
                         <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px; cursor: pointer;" onclick="showActiveTestsToast()">⚡ ${t.activeTestsLabel}: <b style="color: var(--text-color);">${vs.my_active_tests}</b>/${totalNeeded}</div>
                 `;
 
@@ -1694,7 +1766,7 @@
                         let cleanUsername = '';
                         if (tester.username) {
                             cleanUsername = tester.username.replace('@', '');
-                            nameHtml = `<a href="javascript:void(0);" onclick="return openTelegramProfile('${cleanUsername}', event, true)" class="tester-link">@${cleanUsername}</a>`;
+                            nameHtml = `<a href="javascript:void(0);" onclick="return openTelegramProfile('${cleanUsername}', event)" class="tester-link">@${cleanUsername}</a>`;
                         } else {
                             nameHtml = `<span class="tester-id">ID: ${tester.tester_id}</span>`;
                         }
@@ -1731,6 +1803,12 @@
                             }
                         }
                         
+                        // Karma reward button
+                        const alreadyLiked = (project.likes || []).some(l => l.tester_id === tester.tester_id);
+                        const karmaHtml = alreadyLiked
+                            ? `<span style="font-size: 16px; opacity: 0.4;" title="✨">✨</span>`
+                            : `<span onclick="showKarmaPopup(${project.id}, ${tester.tester_id})" style="cursor: pointer; font-size: 16px;">✨</span>`;
+                        
                         const trashHtml = `<span onclick="deleteTester(${project.id}, ${tester.tester_id}, '${cleanUsername || tester.tester_id}')" style="cursor: pointer; font-size: 16px;">🗑️</span>`;
                             
                         testersHtml += `
@@ -1739,6 +1817,7 @@
                                     ${nameHtml}
                                     ${screenshotDayHtml}
                                     ${bellHtml}
+                                    ${karmaHtml}
                                 </div>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${statusHtml}
@@ -1754,7 +1833,18 @@
                 }
                 
                 const visibilityBadge = project.is_app_new
-                    ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.newBadge}</span>`
+                    ? (() => {
+                        let badgeLabel = t.newBadge;
+                        if (project.created_at) {
+                            const exp = new Date(new Date(project.created_at).getTime() + 72 * 60 * 60 * 1000);
+                            const dd = String(exp.getDate()).padStart(2, '0');
+                            const mm = String(exp.getMonth() + 1).padStart(2, '0');
+                            const hh = String(exp.getHours()).padStart(2, '0');
+                            const mi = String(exp.getMinutes()).padStart(2, '0');
+                            badgeLabel = t.newBadgeUntil.replace('{date}', `${dd}.${mm} ${hh}:${mi}`);
+                        }
+                        return `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600; cursor: pointer;" onclick="showNewBadgeToast()">${badgeLabel}</span>`;
+                    })()
                     : project.is_visible
                         ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.visibilityPublic}</span>`
                         : `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,59,48,0.15); color: #ff3b30; font-weight: 600; cursor: pointer;" onclick="showVisibilityToast()">${t.visibilityPrivate}</span>`;
@@ -1919,6 +2009,74 @@
                 showToast(t.needMore.replace('{count}', need));
             } else {
                 showToast(t.visibilityAllPublic);
+            }
+        }
+
+        function showTestDayPopup(day) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            const msg = t.testDayExplain.replace('{days}', day);
+            if (tg.showAlert) tg.showAlert(msg);
+            else alert(msg);
+        }
+
+        function showNewBadgeToast() {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            showToast(t.newBadgeToast);
+        }
+
+        function insertChip(textareaId, chipText) {
+            const textarea = document.getElementById(textareaId);
+            if (!textarea) return;
+            if (textarea.value.length > 0 && !textarea.value.endsWith('\n')) {
+                textarea.value += '\n';
+            }
+            textarea.value += chipText;
+            textarea.focus();
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        async function sendKarmaReward(appId, testerId, rewardType) {
+            try {
+                const response = await fetch(`${API_BASE}/projects/${appId}/like`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tester_id: testerId, type: rewardType })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    showToast(t.karmaToast);
+                    // Update local state to hide the button
+                    const proj = myProjects.find(p => p.id === appId);
+                    if (proj && proj.likes) {
+                        proj.likes.push({ tester_id: testerId, type: rewardType });
+                    }
+                    renderProjects();
+                } else {
+                    showToast(result.message === 'Already rewarded this tester' ? t.karmaAlreadyLiked : result.message);
+                }
+            } catch (error) {
+                console.error("Karma error:", error);
+            }
+        }
+
+        function showKarmaPopup(appId, testerId) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            if (tg.showPopup) {
+                tg.showPopup({
+                    title: '',
+                    message: '',
+                    buttons: [
+                        { id: 'good', type: 'default', text: t.karmaRewardGood },
+                        { id: 'bug', type: 'default', text: t.karmaRewardBug },
+                        { id: 'cancel', type: 'cancel' }
+                    ]
+                }, (btnId) => {
+                    if (btnId && btnId !== 'cancel') sendKarmaReward(appId, testerId, btnId);
+                });
+            } else {
+                // Fallback: just send 'good'
+                sendKarmaReward(appId, testerId, 'good');
             }
         }
 
