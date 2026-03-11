@@ -726,6 +726,9 @@
                 timerRemaining: "⏳ Осталось {sec} сек...",
                 antiFraudAlert: "❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.",
                 confirmed: "✅ Засчитано!",
+                daysShort: "📅 {days} дн.",
+                testersShort: "👥 {count}",
+                myTestDayShort: "🧪 Мой день {days}",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
                 visibilityPrivate: "🔴 Скрыто из публичной Витрины",
@@ -829,6 +832,9 @@
                 timerRemaining: "⏳ {sec} sec left...",
                 antiFraudAlert: "❌ Fast clicking will kill stats for both of us! Google Play checks engagement. Spend these 15 seconds honestly testing the open app (click around the menu) so we all pass moderation.",
                 confirmed: "✅ Counted!",
+                daysShort: "📅 {days} d.",
+                testersShort: "👥 {count}",
+                myTestDayShort: "🧪 Your day {days}",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
                 visibilityPrivate: "🔴 Hidden from public Showcase",
@@ -987,7 +993,9 @@
                         instructions: app.instructions,
                         status: status,
                         start_date: app.start_date,
-                        owner_username: app.owner_username
+                        owner_username: app.owner_username,
+                        active_testers_count: app.active_testers_count,
+                        days_since_publish: app.days_since_publish
                     };
                 });
                 
@@ -1065,6 +1073,52 @@
             return getAvatar(name);
         }
 
+        function getUserTestingDay(startDate) {
+            if (!startDate) {
+                return null;
+            }
+            const startedAt = new Date(startDate);
+            if (Number.isNaN(startedAt.getTime())) {
+                return null;
+            }
+            const today = new Date(getLocalDate());
+            return Math.floor((today - startedAt) / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        function renderCompactMeta(daysSincePublish, activeTestersCount, isNew = false, userTestingDay = null) {
+            const parts = [];
+            if (typeof daysSincePublish === 'number' && daysSincePublish >= 0) {
+                parts.push(t.daysShort.replace('{days}', daysSincePublish));
+            }
+            if (typeof activeTestersCount === 'number') {
+                parts.push(t.testersShort.replace('{count}', activeTestersCount));
+            }
+            if (typeof userTestingDay === 'number' && userTestingDay > 0) {
+                parts.push(t.myTestDayShort.replace('{days}', userTestingDay));
+            }
+            if (isNew) {
+                parts.unshift(`<span style="color: #34c759; font-weight: 600;">${t.newBadge}</span>`);
+            }
+            if (parts.length === 0) {
+                return '';
+            }
+            return `<div style="font-size: 13px; color: var(--hint-color); margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">${parts.map(part => `<span>${part}</span>`).join('')}</div>`;
+        }
+
+        function openTelegramProfile(username) {
+            const cleanUsername = (username || '').replace('@', '').trim();
+            if (!cleanUsername) {
+                return false;
+            }
+            const url = `https://t.me/${cleanUsername}`;
+            try {
+                tg.openTelegramLink(url);
+            } catch (error) {
+                tg.openLink(url);
+            }
+            return true;
+        }
+
         // --- Render Functions ---
         function renderTests() {
             const activeList = document.getElementById('tests-list');
@@ -1079,6 +1133,7 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.id = `test-card-${test.id}`;
+                const userTestingDay = getUserTestingDay(test.start_date);
                 
                 let actionsHtml = '';
                 if (test.status === 'new') {
@@ -1143,7 +1198,7 @@
 
                 let ownerBtnHtml = '';
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="tg.openTelegramLink('https://t.me/${test.owner_username}')">💬</button>`;
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openTelegramProfile('${test.owner_username}')">💬</button>`;
                 }
 
                 let devInfoHtml = '';
@@ -1165,6 +1220,7 @@
                         </div>
                         ${ownerBtnHtml}
                     </div>
+                    ${renderCompactMeta(test.days_since_publish, test.active_testers_count, false, userTestingDay)}
                     ${devInfoHtml}
                     <div id="actions-${test.id}">
                         ${actionsHtml}
@@ -1209,6 +1265,7 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.id = `test-card-${test.id}`;
+                const userTestingDay = getUserTestingDay(test.start_date);
                 
                 let actionsHtml = `
                     <div class="done-text">
@@ -1218,7 +1275,7 @@
 
                 let ownerBtnHtml = '';
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="tg.openTelegramLink('https://t.me/${test.owner_username}')">💬</button>`;
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openTelegramProfile('${test.owner_username}')">💬</button>`;
                 }
 
                 let devInfoHtml = '';
@@ -1240,6 +1297,7 @@
                         </div>
                         ${ownerBtnHtml}
                     </div>
+                    ${renderCompactMeta(test.days_since_publish, test.active_testers_count, false, userTestingDay)}
                     ${devInfoHtml}
                     <div id="actions-${test.id}">
                         ${actionsHtml}
@@ -1269,7 +1327,7 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     
-                    const ownerUsername = app.owner_username || 'unknown';
+                    const ownerUsername = app.owner_username || '';
                     
                     let devInfoHtml = '';
                     if (app.instructions) {
@@ -1289,12 +1347,10 @@
                                 <div class="card-subtitle">${app.package_name}</div>
                             </div>
                         </div>
-                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 12px;">
-                            ${app.is_new ? `<span style="color: #34c759; font-weight: 600;">${t.newBadge}</span> · ` : ''}👥 ${t.activeTesters}: <b>${app.active_testers_count}</b>
-                        </div>
+                        ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
                         ${devInfoHtml}
                         <div class="action-row">
-                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="tg.openTelegramLink('https://t.me/${ownerUsername}')">
+                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openTelegramProfile('${ownerUsername}')">
                                 💬 ${t.contactOwner}
                             </button>
                             <button class="btn btn-primary" style="flex: 1;" onclick="takeAppToTest(${app.app_id})">
@@ -1392,7 +1448,7 @@
                         let cleanUsername = '';
                         if (tester.username) {
                             cleanUsername = tester.username.replace('@', '');
-                            nameHtml = `<a href="javascript:void(0);" onclick="tg.openTelegramLink('https://t.me/${cleanUsername}')" class="tester-link">@${cleanUsername}</a>`;
+                            nameHtml = `<a href="javascript:void(0);" onclick="openTelegramProfile('${cleanUsername}')" class="tester-link">@${cleanUsername}</a>`;
                         } else {
                             nameHtml = `<span class="tester-id">ID: ${tester.tester_id}</span>`;
                         }
@@ -1588,17 +1644,17 @@
 
         async function handleScreenshotAndConfirm(id, ownerUsername) {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            await confirmStart(id);
-            if (tg.showAlert) {
-                tg.showAlert(t.screenshotDayAlert, () => {
-                    if (ownerUsername) {
-                        tg.openTelegramLink(`https://t.me/${ownerUsername}`);
-                    }
-                });
-            } else {
-                if (ownerUsername) {
-                    tg.openTelegramLink(`https://t.me/${ownerUsername}`);
-                }
+            const confirmed = await confirmStart(id);
+            if (!confirmed) {
+                return;
+            }
+
+            showToast(t.screenshotDayAlert.replace(/\n+/g, ' '));
+
+            if (ownerUsername) {
+                setTimeout(() => {
+                    openTelegramProfile(ownerUsername);
+                }, 350);
             }
         }
 
@@ -1671,6 +1727,11 @@
                             local_date: getLocalDate()
                         })
                     });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
                     
                     const result = await response.json();
                     
@@ -1707,6 +1768,8 @@
                                         instructions: app.instructions,
                                         owner_username: app.owner_username,
                                         start_date: app.start_date,
+                                        active_testers_count: app.active_testers_count,
+                                        days_since_publish: app.days_since_publish,
                                         status: status
                                     };
                                 });
@@ -1729,6 +1792,7 @@
                                 console.error("Error fetching fresh data after checkin:", e);
                             }
                         }, 800);
+                        return true;
                     } else {
                         card.classList.remove('removing');
                         if (btn) {
@@ -1737,6 +1801,7 @@
                             btn.disabled = false;
                         }
                         if (tg.showAlert) tg.showAlert("Error checking in.");
+                        return false;
                     }
                 } catch (error) {
                     console.error("Checkin error:", error);
@@ -1747,8 +1812,11 @@
                         btn.disabled = false;
                     }
                     if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+                    return false;
                 }
             }
+
+            return false;
         }
 
         function switchTab(tabId, navElement) {
