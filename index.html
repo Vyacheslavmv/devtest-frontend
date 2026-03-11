@@ -185,6 +185,28 @@
             padding: 8px 0;
         }
 
+        .screenshot-reminder {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 149, 0, 0.12);
+            border: 1px solid rgba(255, 149, 0, 0.28);
+        }
+
+        .screenshot-reminder-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ff9500;
+            margin-bottom: 6px;
+        }
+
+        .screenshot-reminder-text {
+            font-size: 13px;
+            line-height: 1.4;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
         /* Testers List */
         .testers-section {
             margin-top: 12px;
@@ -779,6 +801,9 @@
                 screenshotWarning: "⚠️ Сегодня день обязательного скриншота!",
                 screenshotDayAlert: "✅ День засчитан!\n\nЕсли вы не отправили скриншот с тестируемым приложением - сделайте это сейчас, что бы вас не залокировали. И возвращайтесь завтра для нового чекина.",
                 screenshotDayOwnerAlert: "У данного тестировщика сегодня день обязательного скриншота! Вы должны получить от него скриншот в личные сообщения.",
+                screenshotReminderTitle: "📸 Сегодня был обязательный день скриншота",
+                screenshotReminderText: "Если вы ещё не отправили разработчику скриншот запуска в личные сообщения, вернитесь в диалог и отправьте его. Повторные пропуски могут привести к блокировке.",
+                screenshotReminderBtn: "💬 Открыть ЛС и отправить",
                 inviteModalTitle: "Пригласить тестеров",
                 inviteClose: "Закрыть",
                 inviteBlock1Title: "📢 Опубликовать на нашей Бирже",
@@ -889,6 +914,9 @@
                 screenshotWarning: "⚠️ Today is a mandatory screenshot day!",
                 screenshotDayAlert: "✅ Day counted!\n\nIf you haven't sent a screenshot with the app being tested, do it now so you don't get locked out. And come back tomorrow for a new check-in.",
                 screenshotDayOwnerAlert: "This tester has a mandatory screenshot day today! You should receive a screenshot from them in private messages.",
+                screenshotReminderTitle: "📸 Today was a mandatory screenshot day",
+                screenshotReminderText: "If you still have not sent the developer a launch screenshot in direct messages, return to the chat and send it now. Repeated misses may lead to a ban.",
+                screenshotReminderBtn: "💬 Open DM and send it",
                 inviteModalTitle: "Invite testers",
                 inviteClose: "Close",
                 inviteBlock1Title: "📢 Post on our Exchange",
@@ -1240,6 +1268,29 @@
             return Math.floor((today - startedAt) / (1000 * 60 * 60 * 24)) + 1;
         }
 
+        function isMandatoryScreenshotDay(testingDay) {
+            return [1, 7, 14].includes(testingDay);
+        }
+
+        function getScreenshotReminderHtml(test) {
+            const testingDay = getUserTestingDay(test.start_date);
+            if (!isMandatoryScreenshotDay(testingDay)) {
+                return '';
+            }
+
+            const dmButton = test.owner_username
+                ? `<button class="btn btn-secondary" style="width: 100%; background-color: var(--bg-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="return openTelegramProfile('${test.owner_username}', event, true)">${t.screenshotReminderBtn}</button>`
+                : '';
+
+            return `
+                <div class="screenshot-reminder">
+                    <div class="screenshot-reminder-title">${t.screenshotReminderTitle}</div>
+                    <div class="screenshot-reminder-text">${t.screenshotReminderText}</div>
+                    ${dmButton}
+                </div>
+            `;
+        }
+
         function renderCompactMeta(daysSincePublish, activeTestersCount, isNew = false, userTestingDay = null) {
             const parts = [];
             if (typeof daysSincePublish === 'number' && daysSincePublish >= 0) {
@@ -1260,7 +1311,11 @@
             return `<div style="font-size: 13px; color: var(--hint-color); margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">${parts.map(part => `<span>${part}</span>`).join('')}</div>`;
         }
 
-        function openTelegramProfile(username) {
+        function openTelegramProfile(username, event = null, closeApp = true) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             const cleanUsername = (username || '').replace('@', '').trim();
             if (!cleanUsername) {
                 return false;
@@ -1269,7 +1324,19 @@
             try {
                 tg.openTelegramLink(url);
             } catch (error) {
-                tg.openLink(url);
+                try {
+                    tg.openLink(url);
+                } catch (fallbackError) {
+                    window.location.href = url;
+                }
+            }
+
+            if (closeApp && tg.close) {
+                setTimeout(() => {
+                    try {
+                        tg.close();
+                    } catch (closeError) {}
+                }, 120);
             }
             return true;
         }
@@ -1314,8 +1381,8 @@
                         </div>
                     `;
                 } else if (test.status === 'daily' || test.status === 'opened') {
-                    const testingDay = test.start_date ? Math.floor((new Date(getLocalDate()) - new Date(test.start_date)) / (1000*60*60*24)) + 1 : 999;
-                    const isScreenshotDay = [7, 14].includes(testingDay);
+                    const testingDay = getUserTestingDay(test.start_date) || 999;
+                    const isScreenshotDay = isMandatoryScreenshotDay(testingDay);
 
                     if (isScreenshotDay) {
                         actionsHtml = `
@@ -1353,7 +1420,7 @@
 
                 let ownerBtnHtml = '';
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openTelegramProfile('${test.owner_username}')">💬</button>`;
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event, true)">💬</button>`;
                 }
 
                 let devInfoHtml = '';
@@ -1383,6 +1450,10 @@
                 `;
 
                 if (test.status === 'done') {
+                    const reminderHtml = getScreenshotReminderHtml(test);
+                    if (reminderHtml) {
+                        cardContent += reminderHtml;
+                    }
                     card.innerHTML = cardContent;
                     card.style.cursor = 'pointer';
                     card.onclick = () => tg.openLink(`https://play.google.com/store/apps/details?id=${test.package}`);
@@ -1430,7 +1501,7 @@
 
                 let ownerBtnHtml = '';
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openTelegramProfile('${test.owner_username}')">💬</button>`;
+                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event, true)">💬</button>`;
                 }
 
                 let devInfoHtml = '';
@@ -1458,6 +1529,11 @@
                         ${actionsHtml}
                     </div>
                 `;
+
+                const reminderHtml = getScreenshotReminderHtml(test);
+                if (reminderHtml) {
+                    cardContent += reminderHtml;
+                }
 
                 card.innerHTML = cardContent;
                 card.style.cursor = 'pointer';
@@ -1505,7 +1581,7 @@
                         ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
                         ${devInfoHtml}
                         <div class="action-row">
-                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="openTelegramProfile('${ownerUsername}')">
+                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="return openTelegramProfile('${ownerUsername}', event, true)">
                                 💬 ${t.contactOwner}
                             </button>
                             <button class="btn btn-primary" style="flex: 1;" onclick="takeAppToTest(${app.app_id})">
@@ -1618,7 +1694,7 @@
                         let cleanUsername = '';
                         if (tester.username) {
                             cleanUsername = tester.username.replace('@', '');
-                            nameHtml = `<a href="javascript:void(0);" onclick="openTelegramProfile('${cleanUsername}')" class="tester-link">@${cleanUsername}</a>`;
+                            nameHtml = `<a href="javascript:void(0);" onclick="return openTelegramProfile('${cleanUsername}', event, true)" class="tester-link">@${cleanUsername}</a>`;
                         } else {
                             nameHtml = `<span class="tester-id">ID: ${tester.tester_id}</span>`;
                         }
@@ -1816,14 +1892,6 @@
             const confirmed = await confirmStart(id);
             if (!confirmed) {
                 return;
-            }
-
-            showToast(t.screenshotDayAlert.replace(/\n+/g, ' '));
-
-            if (ownerUsername) {
-                setTimeout(() => {
-                    openTelegramProfile(ownerUsername);
-                }, 350);
             }
         }
 
