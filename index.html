@@ -731,15 +731,17 @@
                 myTestDayShort: "🧪 Мой день {days}",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
-                visibilityPrivate: "🔴 Скрыто из публичной Витрины",
-                visibilityHint: "Тестируйте чужие приложения, чтобы ваши стали видны на Витрине (нужно ≥3 активных тестов за 72ч)",
+                visibilityPrivate: "🔴 Скрыто из Витрины",
+                visibilityAllPublic: "🟢 Все приложения видны",
+                visibilityPartial: "🟡 Видно {visible} из {total}",
+                visibilityNone: "🔴 Не видно на Витрине",
+                visibilityHint: "Каждое ваше приложение требует 3 активных теста чужих приложений за 72ч. Новые приложения видны на витрине автоматически первые 3 дня.",
                 visibilityTitle: "📊 Видимость на Витрине",
                 activeTestsLabel: "Ваших активных тестов",
                 rankLabel: "Рейтинг: #{rank} из {total}",
-                needMore: "Для публикации нужно ещё: {count}",
+                needMore: "Для видимости всех нужно ещё: {count}",
                 newBadge: "🆕 Новинка",
                 topLabel: "TOP-{n}: {count} тестов",
-                testersCountLabel: "👥 Тестеров",
                 // Bell notification
                 bellNotifyMsg: "Привет! 👀 Кажется, ты затерялся в матрице и забыл про ежедневный тест моего приложения «{name}»! Забегай в бота сделать спасительный чекин, пока Google нас не покарал 😅: https://t.me/Android12TestersBot",
                 // Delete tester
@@ -837,15 +839,17 @@
                 myTestDayShort: "🧪 Your day {days}",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
-                visibilityPrivate: "🔴 Hidden from public Showcase",
-                visibilityHint: "Test others' apps to make yours visible on the Showcase (need ≥3 active tests in 72h)",
+                visibilityPrivate: "🔴 Hidden from Showcase",
+                visibilityAllPublic: "🟢 All apps visible",
+                visibilityPartial: "🟡 {visible} of {total} visible",
+                visibilityNone: "🔴 Not visible on Showcase",
+                visibilityHint: "Each of your apps requires 3 active tests of others' apps in 72h. New apps are automatically visible for the first 3 days.",
                 visibilityTitle: "📊 Showcase Visibility",
                 activeTestsLabel: "Your active tests",
                 rankLabel: "Rank: #{rank} of {total}",
-                needMore: "Need {count} more to publish",
+                needMore: "Need {count} more for all to be visible",
                 newBadge: "🆕 New",
                 topLabel: "TOP-{n}: {count} tests",
-                testersCountLabel: "👥 Testers",
                 // Bell notification
                 bellNotifyMsg: "Hey! 👀 Looks like you forgot about the daily test of my app \"{name}\"! Open the bot and do a check-in before Google punishes us 😅: https://t.me/Android12TestersBot",
                 // Delete tester
@@ -1042,7 +1046,9 @@
                     icon_url: project.icon_url,
                     google_group_url: project.google_group_url,
                     instructions: project.instructions || '',
-                    testers: project.testers || []
+                    testers: project.testers || [],
+                    is_visible: project.is_visible || false,
+                    is_app_new: project.is_app_new || false
                 }));
                 
                 renderProjects();
@@ -1220,7 +1226,7 @@
                         </div>
                         ${ownerBtnHtml}
                     </div>
-                    ${renderCompactMeta(test.days_since_publish, test.active_testers_count, false, userTestingDay)}
+                    ${renderCompactMeta(null, test.active_testers_count, false, userTestingDay)}
                     ${devInfoHtml}
                     <div id="actions-${test.id}">
                         ${actionsHtml}
@@ -1297,7 +1303,7 @@
                         </div>
                         ${ownerBtnHtml}
                     </div>
-                    ${renderCompactMeta(test.days_since_publish, test.active_testers_count, false, userTestingDay)}
+                    ${renderCompactMeta(null, test.active_testers_count, false, userTestingDay)}
                     ${devInfoHtml}
                     <div id="actions-${test.id}">
                         ${actionsHtml}
@@ -1386,25 +1392,40 @@
             // Visibility stats block
             if (visibilityStats && Object.keys(visibilityStats).length > 0) {
                 const vs = visibilityStats;
-                const statusColor = vs.is_visible ? '#34c759' : '#ff3b30';
-                const statusText = vs.is_visible ? t.visibilityPublic : t.visibilityPrivate;
                 const rankText = t.rankLabel.replace('{rank}', vs.rank).replace('{total}', vs.total_developers);
+                const totalNeeded = vs.total_needed || (vs.my_app_count * 3);
+
+                // Determine overall status
+                let statusText, statusColor, blockBorderColor, blockBgColor;
+                if (vs.all_visible) {
+                    statusText = t.visibilityAllPublic;
+                    statusColor = '#34c759';
+                    blockBorderColor = 'rgba(52,199,89,0.25)';
+                    blockBgColor = 'rgba(52,199,89,0.08)';
+                } else if (vs.visible_count > 0) {
+                    statusText = t.visibilityPartial.replace('{visible}', vs.visible_count).replace('{total}', vs.my_app_count);
+                    statusColor = '#ff9500';
+                    blockBorderColor = 'rgba(255,149,0,0.25)';
+                    blockBgColor = 'rgba(255,149,0,0.08)';
+                } else {
+                    statusText = t.visibilityNone;
+                    statusColor = '#ff3b30';
+                    blockBorderColor = 'rgba(255,59,48,0.25)';
+                    blockBgColor = 'rgba(255,59,48,0.08)';
+                }
 
                 let statsHtml = `
-                    <div style="background: linear-gradient(135deg, ${vs.is_visible ? 'rgba(52,199,89,0.08)' : 'rgba(255,59,48,0.08)'}, var(--secondary-bg-color)); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid ${vs.is_visible ? 'rgba(52,199,89,0.25)' : 'rgba(255,59,48,0.25)'};">
+                    <div style="background: linear-gradient(135deg, ${blockBgColor}, var(--secondary-bg-color)); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid ${blockBorderColor};">
                         <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">${t.visibilityTitle}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                             <span style="font-size: 14px; font-weight: 600; color: ${statusColor}; cursor: pointer;" onclick="showVisibilityToast()">${statusText}</span>
                             <span style="font-size: 13px; color: var(--hint-color);">${rankText}</span>
                         </div>
-                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px; cursor: pointer;" onclick="showActiveTestsToast()">⚡ ${t.activeTestsLabel}: <b style="color: var(--text-color);">${vs.my_active_tests}</b>/3</div>
+                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px; cursor: pointer;" onclick="showActiveTestsToast()">⚡ ${t.activeTestsLabel}: <b style="color: var(--text-color);">${vs.my_active_tests}</b>/${totalNeeded}</div>
                 `;
 
-                if (!vs.is_visible && !vs.is_new && vs.need_more > 0) {
+                if (!vs.all_visible && vs.need_more > 0) {
                     statsHtml += `<div style="font-size: 13px; color: #ff9500; margin-top: 4px;">${t.needMore.replace('{count}', vs.need_more)}</div>`;
-                }
-                if (vs.is_new) {
-                    statsHtml += `<div style="font-size: 13px; color: #34c759; margin-top: 4px;">${t.newBadge}</div>`;
                 }
 
                 statsHtml += `
@@ -1418,8 +1439,8 @@
                 container.insertAdjacentHTML('beforeend', statsHtml);
             }
 
-            // Visibility hint when hidden
-            if (visibilityStats && !visibilityStats.is_visible && !visibilityStats.is_new) {
+            // Visibility hint when not all visible
+            if (visibilityStats && !visibilityStats.all_visible) {
                 const hintDiv = document.createElement('div');
                 hintDiv.style.cssText = "background-color: rgba(255, 149, 0, 0.15); color: var(--text-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;";
                 hintDiv.innerText = t.visibilityHint;
@@ -1507,9 +1528,9 @@
                     testersHtml = `<p class="no-testers">${t.noTesters}</p>`;
                 }
                 
-                const visibilityBadge = visibilityStats.is_new
+                const visibilityBadge = project.is_app_new
                     ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.newBadge}</span>`
-                    : visibilityStats.is_visible
+                    : project.is_visible
                         ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.visibilityPublic}</span>`
                         : `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,59,48,0.15); color: #ff3b30; font-weight: 600; cursor: pointer;" onclick="showVisibilityToast()">${t.visibilityPrivate}</span>`;
                 
@@ -1524,7 +1545,6 @@
                     </div>
                     <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
                         ${visibilityBadge}
-                        <span>${t.testersCountLabel}: ${project.testers ? project.testers.length : 0}</span>
                     </div>
                     <div class="testers-section">
                         <div class="testers-title">${t.testersList} (${project.testers ? project.testers.length : 0})</div>
@@ -1681,7 +1701,7 @@
             if (need > 0) {
                 showToast(t.needMore.replace('{count}', need));
             } else {
-                showToast(t.visibilityPublic);
+                showToast(t.visibilityAllPublic);
             }
         }
 
@@ -1811,7 +1831,7 @@
                         btn.style.backgroundColor = "var(--success-color)";
                         btn.disabled = false;
                     }
-                    if (tg.showAlert) tg.showAlert("Network error. Please try again.");
+                    if (tg.showAlert) tg.showAlert(error.message || "Network error. Please try again.");
                     return false;
                 }
             }
