@@ -801,7 +801,7 @@
                 noAvailable: "Пока нет доступных приложений",
                 activeTesters: "Активных тестеров",
                 contactOwner: "Написать владельцу",
-                takeToTest: "Взять на тест",
+                takeToTest: "Тестировать",
                 inviteLink: "Инвайт-ссылка",
                 deleteProject: "Завершить (Удалить)",
                 inviteCopied: "Ссылка скопирована! Отправьте её для взаимного теста.",
@@ -856,7 +856,7 @@
                 confirmed: "✅ Засчитано!",
                 daysShort: "📅 {days} дн.",
                 testersShort: "👥 {count}",
-                myTestDayShort: "📅 {days} день",
+                myTestDayShort: "🧪 {days} день",
                 testDayExplain: "Вы тестируете это приложение {days}-й день из 14.\n\nДни обязательных скриншотов: 1, 7 и 14.\nВ эти дни необходимо отправить разработчику скриншот запуска приложения в личные сообщения.",
                 newBadgeUntil: "🆕 Новинка (до {date})",
                 newBadgeToast: "Приложение автоматически видно на витрине первые 72 часа после публикации. После этого видимость зависит от ваших активных тестов чужих приложений.",
@@ -868,12 +868,20 @@
                 chipTryFeatures: "Попробуй основные функции",
                 chipLeaveReview: "Оставь отзыв после релиза",
                 // Karma
-                karmaLabel: "✨ Карма: {karma}",
+                karmaLabel: "☯️ Карма: {karma}",
                 karmaRewardGood: "👍 Хороший тестер",
                 karmaRewardBug: "🐛 Нашёл баг",
-                karmaToast: "✨ Награда отправлена тестеру!",
+                karmaToast: "☯️ Награда отправлена тестеру!",
                 karmaAlreadyLiked: "Вы уже наградили этого тестера за это приложение",
-                karmaShowcase: "✨ {karma}",
+                karmaShowcase: "☯️ {karma}",
+                karmaPopupTitle: "Награда",
+                karmaPopupMessage: "Выберите тип награды для тестера",
+                karmaBreakdownTitle: "☯️ Карма: {karma}",
+                karmaBreakdownGood: "👍 Хороший тестер: {count}",
+                karmaBreakdownBug: "🐛 Нашёл баг: {count}",
+                karmaBreakdownTitle: "Карма",
+                karmaBreakdownGood: "👍 Хорошие тесты: {count}",
+                karmaBreakdownBug: "🐛 Найденные баги: {count}",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
                 visibilityPrivate: "🔴 Скрыто из Витрины",
@@ -931,7 +939,7 @@
                 noAvailable: "No apps available yet",
                 activeTesters: "Active testers",
                 contactOwner: "Contact owner",
-                takeToTest: "Take to test",
+                takeToTest: "Test",
                 inviteLink: "Invite link",
                 deleteProject: "Finish (Delete)",
                 inviteCopied: "Link copied! Send it for mutual testing.",
@@ -986,7 +994,7 @@
                 confirmed: "✅ Counted!",
                 daysShort: "📅 {days} d.",
                 testersShort: "👥 {count}",
-                myTestDayShort: "📅 Day {days}",
+                myTestDayShort: "🧪 Day {days}",
                 testDayExplain: "You've been testing this app for {days} days out of 14.\n\nMandatory screenshot days: 1, 7, and 14.\nOn these days you must send the developer a launch screenshot via direct message.",
                 newBadgeUntil: "🆕 New (until {date})",
                 newBadgeToast: "The app is automatically visible on the showcase for the first 72 hours after publishing. After that, visibility depends on your active tests of other apps.",
@@ -998,12 +1006,20 @@
                 chipTryFeatures: "Try the main features",
                 chipLeaveReview: "Leave a review after release",
                 // Karma
-                karmaLabel: "✨ Karma: {karma}",
+                karmaLabel: "☯️ Karma: {karma}",
                 karmaRewardGood: "👍 Good tester",
                 karmaRewardBug: "🐛 Found a bug",
-                karmaToast: "✨ Reward sent to the tester!",
+                karmaToast: "☯️ Reward sent to the tester!",
                 karmaAlreadyLiked: "You already rewarded this tester for this app",
-                karmaShowcase: "✨ {karma}",
+                karmaShowcase: "☯️ {karma}",
+                karmaPopupTitle: "Reward",
+                karmaPopupMessage: "Choose reward type for the tester",
+                karmaBreakdownTitle: "☯️ Karma: {karma}",
+                karmaBreakdownGood: "👍 Good tester: {count}",
+                karmaBreakdownBug: "🐛 Found a bug: {count}",
+                karmaBreakdownTitle: "Karma",
+                karmaBreakdownGood: "👍 Good tests: {count}",
+                karmaBreakdownBug: "🐛 Bugs found: {count}",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
                 visibilityPrivate: "🔴 Hidden from Showcase",
@@ -1293,13 +1309,17 @@
                     is_visible: project.is_visible || false,
                     is_app_new: project.is_app_new || false,
                     created_at: project.created_at || null,
-                    likes: project.likes || []
+                    likes: project.likes || [],
+                    visibility_quota: project.visibility_quota || 0,
+                    likes_used: project.likes_used || 0,
+                    likes_max: project.likes_max || 1,
                 }));
                 
-                // Store owner karma from visibility stats
-                if (data.karma !== undefined) {
-                    visibilityStats.ownerKarma = data.karma;
-                }
+                visibilityStats = {
+                    ownerKarma: data.karma || 0,
+                    rank: data.rank || 0,
+                    total_developers: data.total_developers || 0
+                };
                 
                 renderProjects();
             } catch (error) {
@@ -1647,7 +1667,7 @@
                                 <div class="card-title">${app.name}</div>
                                 <div class="card-subtitle">${app.package_name}</div>
                             </div>
-                            ${app.owner_karma ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,204,0,0.15); color: #ffcc00; font-weight: 600; margin-left: auto;">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</span>` : ''}
+                            ${app.owner_karma ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,204,0,0.15); color: #ffcc00; font-weight: 600; margin-left: auto; cursor: pointer;" onclick="showKarmaBreakdown(${app.owner_id || 0}); event.stopPropagation();">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</span>` : ''}
                         </div>
                         ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
                         ${devInfoHtml}
@@ -1685,63 +1705,15 @@
             reminder.innerText = t.deleteReminder;
             container.appendChild(reminder);
 
-            // Visibility stats block
-            if (visibilityStats && Object.keys(visibilityStats).length > 0) {
-                const vs = visibilityStats;
-                const rankText = t.rankLabel.replace('{rank}', vs.rank).replace('{total}', vs.total_developers);
-                const totalNeeded = vs.total_needed || (vs.my_app_count * 3);
-
-                // Determine overall status
-                let statusText, statusColor, blockBorderColor, blockBgColor;
-                if (vs.all_visible) {
-                    statusText = t.visibilityAllPublic;
-                    statusColor = '#34c759';
-                    blockBorderColor = 'rgba(52,199,89,0.25)';
-                    blockBgColor = 'rgba(52,199,89,0.08)';
-                } else if (vs.visible_count > 0) {
-                    statusText = t.visibilityPartial.replace('{visible}', vs.visible_count).replace('{total}', vs.my_app_count);
-                    statusColor = '#ff9500';
-                    blockBorderColor = 'rgba(255,149,0,0.25)';
-                    blockBgColor = 'rgba(255,149,0,0.08)';
-                } else {
-                    statusText = t.visibilityNone;
-                    statusColor = '#ff3b30';
-                    blockBorderColor = 'rgba(255,59,48,0.25)';
-                    blockBgColor = 'rgba(255,59,48,0.08)';
-                }
-
-                let statsHtml = `
-                    <div style="background: linear-gradient(135deg, ${blockBgColor}, var(--secondary-bg-color)); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid ${blockBorderColor};">
-                        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">${t.visibilityTitle}</div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-size: 14px; font-weight: 600; color: ${statusColor}; cursor: pointer;" onclick="showVisibilityToast()">${statusText}</span>
-                            <span style="font-size: 13px; color: var(--hint-color);">${rankText}</span>
-                        </div>
-                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px;">${t.karmaLabel.replace('{karma}', visibilityStats.ownerKarma || 0)}</div>
-                        <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 4px; cursor: pointer;" onclick="showActiveTestsToast()">⚡ ${t.activeTestsLabel}: <b style="color: var(--text-color);">${vs.my_active_tests}</b>/${totalNeeded}</div>
-                `;
-
-                if (!vs.all_visible && vs.need_more > 0) {
-                    statsHtml += `<div style="font-size: 13px; color: #ff9500; margin-top: 4px;">${t.needMore.replace('{count}', vs.need_more)}</div>`;
-                }
-
-                statsHtml += `
-                        <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
-                            <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(142,142,147,0.1); color: var(--hint-color);">${t.topLabel.replace('{n}', '1').replace('{count}', vs.top1)}</span>
-                            <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(142,142,147,0.1); color: var(--hint-color);">${t.topLabel.replace('{n}', '3').replace('{count}', vs.top3)}</span>
-                            <span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(142,142,147,0.1); color: var(--hint-color);">${t.topLabel.replace('{n}', '5').replace('{count}', vs.top5)}</span>
-                        </div>
+            // Simplified karma header
+            if (visibilityStats && visibilityStats.ownerKarma !== undefined) {
+                const karmaHtml = `
+                    <div style="background: var(--secondary-bg-color); border-radius: 16px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="showKarmaBreakdown(${userId})">
+                        <span style="font-size: 18px; font-weight: 700;">☯️ ${visibilityStats.ownerKarma}</span>
+                        <span style="font-size: 13px; color: var(--hint-color);">${t.karmaLabel.replace('{karma}', visibilityStats.ownerKarma)}</span>
                     </div>
                 `;
-                container.insertAdjacentHTML('beforeend', statsHtml);
-            }
-
-            // Visibility hint when not all visible
-            if (visibilityStats && !visibilityStats.all_visible) {
-                const hintDiv = document.createElement('div');
-                hintDiv.style.cssText = "background-color: rgba(255, 149, 0, 0.15); color: var(--text-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;";
-                hintDiv.innerText = t.visibilityHint;
-                container.appendChild(hintDiv);
+                container.insertAdjacentHTML('beforeend', karmaHtml);
             }
 
             const today = getLocalDate();
@@ -1806,8 +1778,8 @@
                         // Karma reward button
                         const alreadyLiked = (project.likes || []).some(l => l.tester_id === tester.tester_id);
                         const karmaHtml = alreadyLiked
-                            ? `<span style="font-size: 16px; opacity: 0.4;" title="✨">✨</span>`
-                            : `<span onclick="showKarmaPopup(${project.id}, ${tester.tester_id})" style="cursor: pointer; font-size: 16px;">✨</span>`;
+                            ? `<span style="font-size: 14px; opacity: 0.4;" title="☯️">+☯️</span>`
+                            : `<span onclick="showKarmaPopup(${project.id}, ${tester.tester_id})" style="cursor: pointer; font-size: 14px;">+☯️</span>`;
                         
                         const trashHtml = `<span onclick="deleteTester(${project.id}, ${tester.tester_id}, '${cleanUsername || tester.tester_id}')" style="cursor: pointer; font-size: 16px;">🗑️</span>`;
                             
@@ -1832,22 +1804,38 @@
                     testersHtml = `<p class="no-testers">${t.noTesters}</p>`;
                 }
                 
-                const visibilityBadge = project.is_app_new
-                    ? (() => {
-                        let badgeLabel = t.newBadge;
+                const visibilityBadge = (() => {
+                    const vq = project.visibility_quota;
+                    const quotaColor = vq >= 3 ? '#34c759' : vq > 0 ? '#ff9500' : '#ff3b30';
+                    let badges = '';
+                    
+                    // 🆕 badge for new apps
+                    if (project.is_app_new) {
+                        let newLabel = t.newBadge;
                         if (project.created_at) {
                             const exp = new Date(new Date(project.created_at).getTime() + 72 * 60 * 60 * 1000);
                             const dd = String(exp.getDate()).padStart(2, '0');
                             const mm = String(exp.getMonth() + 1).padStart(2, '0');
                             const hh = String(exp.getHours()).padStart(2, '0');
                             const mi = String(exp.getMinutes()).padStart(2, '0');
-                            badgeLabel = t.newBadgeUntil.replace('{date}', `${dd}.${mm} ${hh}:${mi}`);
+                            newLabel = t.newBadgeUntil.replace('{date}', `${dd}.${mm} ${hh}:${mi}`);
                         }
-                        return `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600; cursor: pointer;" onclick="showNewBadgeToast()">${badgeLabel}</span>`;
-                    })()
-                    : project.is_visible
-                        ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600;">${t.visibilityPublic}</span>`
-                        : `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,59,48,0.15); color: #ff3b30; font-weight: 600; cursor: pointer;" onclick="showVisibilityToast()">${t.visibilityPrivate}</span>`;
+                        badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600; cursor: pointer;" onclick="showNewBadgeToast()">${newLabel}</span>`;
+                    }
+                    
+                    // 👁 Visibility quota
+                    badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: ${quotaColor}1a; color: ${quotaColor}; font-weight: 600; cursor: pointer;" onclick="showVisibilityToast()">👁 ${vq}/3</span>`;
+                    
+                    // 🏆 Rank (only when 3/3)
+                    if (vq >= 3 && visibilityStats.rank) {
+                        badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(51,144,236,0.15); color: var(--link-color); font-weight: 600;">🏆 #${visibilityStats.rank}</span>`;
+                    }
+                    
+                    // ☯️ Likes used/max
+                    badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,204,0,0.15); color: #e6b800; font-weight: 600;">☯️ ${project.likes_used}/${project.likes_max}</span>`;
+                    
+                    return badges;
+                })();
                 
                 card.innerHTML = `
                     <div class="card-header" style="margin-bottom: 8px;">
@@ -2002,14 +1990,24 @@
             showToast(t.visibilityHint);
         }
 
+        async function showKarmaBreakdown(targetUserId) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            try {
+                const resp = await fetch(`${API_BASE}/users/${targetUserId}/karma/breakdown`);
+                const data = await resp.json();
+                const msg = t.karmaBreakdownTitle.replace('{karma}', data.total || 0)
+                    + '\n\n' + t.karmaBreakdownGood.replace('{count}', data.good || 0)
+                    + '\n' + t.karmaBreakdownBug.replace('{count}', data.bug || 0);
+                if (tg.showAlert) tg.showAlert(msg);
+                else alert(msg);
+            } catch (e) {
+                console.error('Karma breakdown error:', e);
+            }
+        }
+
         function showActiveTestsToast() {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            const need = visibilityStats.need_more || 0;
-            if (need > 0) {
-                showToast(t.needMore.replace('{count}', need));
-            } else {
-                showToast(t.visibilityAllPublic);
-            }
+            showToast(t.visibilityHint);
         }
 
         function showTestDayPopup(day) {
@@ -2064,8 +2062,8 @@
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             if (tg.showPopup) {
                 tg.showPopup({
-                    title: '',
-                    message: '',
+                    title: t.karmaPopupTitle,
+                    message: t.karmaPopupMessage,
                     buttons: [
                         { id: 'good', type: 'default', text: t.karmaRewardGood },
                         { id: 'bug', type: 'default', text: t.karmaRewardBug },
@@ -2077,6 +2075,21 @@
             } else {
                 // Fallback: just send 'good'
                 sendKarmaReward(appId, testerId, 'good');
+            }
+        }
+
+        async function showKarmaBreakdown(targetUserId) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            try {
+                const resp = await fetch(`${API_BASE}/users/${targetUserId}/karma/breakdown`);
+                const data = await resp.json();
+                const msg = t.karmaBreakdownTitle.replace('{karma}', data.total || 0)
+                    + '\n\n' + t.karmaBreakdownGood.replace('{count}', data.good || 0)
+                    + '\n' + t.karmaBreakdownBug.replace('{count}', data.bug || 0);
+                if (tg.showAlert) tg.showAlert(msg);
+                else alert(msg);
+            } catch (e) {
+                console.error('Karma breakdown error:', e);
             }
         }
 
