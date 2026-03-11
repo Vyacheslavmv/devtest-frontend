@@ -446,12 +446,87 @@
         details[open] > summary .details-arrow {
             transform: rotate(180deg);
         }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--secondary-bg-color) 25%, var(--border-color) 50%, var(--secondary-bg-color) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 12px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-card {
+            background-color: var(--secondary-bg-color);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .skeleton-line {
+            height: 14px;
+            margin-bottom: 10px;
+            border-radius: 7px;
+        }
+        .skeleton-line.short { width: 40%; }
+        .skeleton-line.medium { width: 65%; }
+        .skeleton-line.long { width: 90%; }
+        .skeleton-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+        .skeleton-btn {
+            height: 44px;
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        /* Loading indicator dot */
+        .loading-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--link-color);
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: dot-blink 1s infinite;
+        }
+        .loading-dot.hidden { display: none; }
+        @keyframes dot-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        /* Retry button */
+        .retry-container {
+            text-align: center;
+            padding: 32px 16px;
+        }
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 1px solid rgba(142, 142, 147, 0.3);
+            border-radius: 12px;
+            background: var(--secondary-bg-color);
+            color: var(--text-color);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .retry-btn:active { opacity: 0.7; }
     </style>
 </head>
 <body>
 
     <!-- Language Switcher -->
-    <button class="lang-switcher" id="lang-switcher" onclick="toggleLanguage()">🌐 EN</button>
+    <button class="lang-switcher" id="lang-switcher" onclick="toggleLanguage()">🌐 EN<span id="loading-dot" class="loading-dot hidden"></span></button>
 
     <!-- TAB 1: Мои тесты -->
     <div id="tab-tests" class="container tab-content active">
@@ -651,6 +726,8 @@
                 confirmStart: "2️⃣ Подтвердить запуск",
                 successCheckin: "✅ Успешно!",
                 loadingShowcase: "Загрузка витрины...",
+                retryBtn: "🔄 Повторить попытку",
+                loadError: "Не удалось загрузить данные",
                 leaveReview: "🌟 Оставить приватный отзыв",
                 claimReward: "🎁 Забрать награду и завершить",
                 doneToday: "✅ Выполнено сегодня",
@@ -759,6 +836,8 @@
                 confirmStart: "2️⃣ Confirm start",
                 successCheckin: "✅ Success!",
                 loadingShowcase: "Loading showcase...",
+                retryBtn: "🔄 Retry",
+                loadError: "Failed to load data",
                 leaveReview: "🌟 Leave Private Review",
                 claimReward: "🎁 Claim Reward & Finish",
                 doneToday: "✅ Done for today",
@@ -901,8 +980,11 @@
             document.getElementById('t-editPackage').innerText = t.editPackage;
             document.getElementById('t-editGroup').innerText = t.googleGroup;
             document.getElementById('t-editSave').innerText = t.save;
-            // Language switcher
-            document.getElementById('lang-switcher').innerText = '🌐 ' + (lang === 'ru' ? 'RU' : 'EN');
+            // Language switcher — preserve loading dot
+            const switcher = document.getElementById('lang-switcher');
+            const dot = document.getElementById('loading-dot');
+            const dotHtml = dot ? dot.outerHTML : '';
+            switcher.innerHTML = '🌐 ' + (lang === 'ru' ? 'RU' : 'EN') + dotHtml;
         }
 
         function applyLanguage(newLang) {
@@ -960,13 +1042,71 @@
         let pendingProjectData = null;
         let projectToEdit = null;
         let visibilityStats = {};
+        let _activeRequests = 0;
+
+        function _apiStart() {
+            _activeRequests++;
+            const dot = document.getElementById('loading-dot');
+            if (dot) dot.classList.remove('hidden');
+        }
+        function _apiEnd() {
+            _activeRequests = Math.max(0, _activeRequests - 1);
+            if (_activeRequests === 0) {
+                const dot = document.getElementById('loading-dot');
+                if (dot) dot.classList.add('hidden');
+            }
+        }
+
+        function showSkeleton(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const isProjects = containerId === 'projects-list';
+            let html = '';
+            const count = isProjects ? 2 : 3;
+            for (let i = 0; i < count; i++) {
+                html += `<div class="skeleton-card">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <div class="skeleton skeleton-avatar"></div>
+                        <div style="flex: 1;">
+                            <div class="skeleton skeleton-line medium"></div>
+                            <div class="skeleton skeleton-line short" style="margin-bottom: 0;"></div>
+                        </div>
+                    </div>`;
+                if (isProjects) {
+                    html += `<div class="skeleton skeleton-line long"></div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(142,142,147,0.2);">
+                        <div class="skeleton skeleton-line short" style="margin-bottom: 8px;"></div>
+                        <div class="skeleton skeleton-line medium"></div>
+                        <div class="skeleton skeleton-line medium"></div>
+                    </div>`;
+                } else {
+                    html += `<div class="skeleton skeleton-line long"></div>`;
+                }
+                html += `<div class="skeleton skeleton-btn"></div></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function showRetry(containerId, retryFn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = `
+                <div class="retry-container">
+                    <p style="color: var(--hint-color); margin-bottom: 12px;">${t.loadError}</p>
+                    <button class="retry-btn" onclick="${retryFn}">${t.retryBtn}</button>
+                </div>
+            `;
+        }
 
         // --- API Calls ---
         let availableAppsLoaded = false;
 
         async function loadTasks() {
+            showSkeleton('tests-list');
+            _apiStart();
             try {
                 const response = await fetch(`${API_BASE}/tasks/${userId}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 
                 const today = getLocalDate();
@@ -1015,6 +1155,9 @@
                 }
             } catch (error) {
                 console.error("Error loading tasks:", error);
+                showRetry('tests-list', 'loadTasks()');
+            } finally {
+                _apiEnd();
             }
         }
 
@@ -1032,8 +1175,11 @@
         });
 
         async function loadProjects() {
+            showSkeleton('projects-list');
+            _apiStart();
             try {
                 const response = await fetch(`${API_BASE}/projects/${userId}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 
                 const projectsList = data.projects || [];
@@ -1054,6 +1200,9 @@
                 renderProjects();
             } catch (error) {
                 console.error("Error loading projects:", error);
+                showRetry('projects-list', 'loadProjects()');
+            } finally {
+                _apiEnd();
             }
         }
 
