@@ -667,6 +667,55 @@
             font-weight: 600;
             white-space: nowrap;
         }
+
+        /* Community Pulse */
+        .pulse-card {
+            background: rgba(142, 142, 147, 0.08);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        .pulse-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .events-list.expanded {
+            max-height: 200px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .events-list::-webkit-scrollbar { display: none; }
+        .event-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .event-text {
+            font-size: 13px;
+            color: var(--text-color);
+            line-height: 1.35;
+        }
+        .event-time {
+            font-size: 12px;
+            color: var(--hint-color);
+        }
+        .events-toggle {
+            margin-top: 10px;
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--link-color);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -676,6 +725,14 @@
 
     <!-- TAB 1: Мои тесты -->
     <div id="tab-tests" class="container tab-content active">
+        <div id="community-pulse" class="pulse-card">
+            <div class="pulse-title" id="t-pulseTitle">🌐 Пульс сообщества</div>
+            <div id="events-list" class="events-list">
+                <div class="event-time">Загрузка...</div>
+            </div>
+            <button id="events-toggle" class="events-toggle" style="display: none;" onclick="toggleEventsExpanded()">Развернуть ▼</button>
+        </div>
+
         <div class="banner" id="main-banner" style="background-color: var(--secondary-bg-color); padding: 16px; border-radius: 16px; margin-bottom: 16px; position: relative;">
             <button onclick="closeBanner()" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 16px; color: var(--hint-color); cursor: pointer; padding: 4px;">✖</button>
             <p id="t-bannerText" style="margin: 0; color: var(--text-color); font-size: 14px; line-height: 1.4; padding-right: 20px;">Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.</p>
@@ -992,6 +1049,15 @@
                 // Warnings
                 warningOldApp: "⚠️ Этот проект на тесте уже более 14 дней. Пора публиковать релиз и удалить проект.",
                 warningOldChip: "⚠️ 14+",
+                pulseTitle: "🌐 Пульс сообщества",
+                pulseLoading: "Загрузка...",
+                pulseEmpty: "Пока событий нет",
+                pulseExpand: "Развернуть ▼",
+                pulseCollapse: "Свернуть ▲",
+                timeJustNow: "только что",
+                timeMinAgo: "{count} мин. назад",
+                timeHourAgo: "{count} ч. назад",
+                timeDayAgo: "{count} дн. назад",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
                 visibilityPrivate: "🔴 Скрыто из Витрины",
@@ -1139,6 +1205,15 @@
                 // Warnings
                 warningOldApp: "⚠️ This project has been in testing for over 14 days. Time to publish your release and delete the project.",
                 warningOldChip: "⚠️ 14+",
+                pulseTitle: "🌐 Community Pulse",
+                pulseLoading: "Loading...",
+                pulseEmpty: "No events yet",
+                pulseExpand: "Expand ▼",
+                pulseCollapse: "Collapse ▲",
+                timeJustNow: "just now",
+                timeMinAgo: "{count} min ago",
+                timeHourAgo: "{count} h ago",
+                timeDayAgo: "{count} d ago",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
                 visibilityPrivate: "🔴 Hidden from Showcase",
@@ -1171,6 +1246,7 @@
             document.getElementById('t-testsDesc').innerText = t.testsDesc;
             document.getElementById('t-projectsTitle').innerText = t.tabProjects;
             document.getElementById('t-projectsDesc').innerText = t.projectsDesc;
+            document.getElementById('t-pulseTitle').innerText = t.pulseTitle;
             document.getElementById('t-addApp').innerText = t.addApp;
             document.getElementById('t-doneToday').innerText = t.doneToday;
             document.getElementById('t-modalTitle').innerText = t.addApp;
@@ -1217,6 +1293,11 @@
             };
             renderChips('chips-instructions', 'app-instructions');
             renderChips('chips-edit-instructions', 'edit-description');
+
+            const toggleBtn = document.getElementById('events-toggle');
+            if (toggleBtn) {
+                toggleBtn.innerText = eventsExpanded ? t.pulseCollapse : t.pulseExpand;
+            }
         }
 
         function applyLanguage(newLang) {
@@ -1231,6 +1312,7 @@
             }).catch(e => console.error('Language sync error:', e));
             // Re-apply everything
             applyStaticTranslations();
+            renderEvents();
             renderTests();
             renderProjects();
             if (availableAppsLoaded) renderAvailableApps();
@@ -1263,6 +1345,7 @@
 
             // Load real data from backend
             loadTasks();
+            loadEvents();
             loadProjects();
         });
 
@@ -1270,6 +1353,8 @@
         let myTests = [];
         let myProjects = [];
         let availableApps = [];
+        let communityEvents = null;
+        let eventsExpanded = false;
         let activeTimerAppId = null;
         let pendingProjectData = null;
         let projectToEdit = null;
@@ -1393,6 +1478,23 @@
             }
         }
 
+        async function loadEvents() {
+            _apiStart();
+            try {
+                const response = await fetch(`${API_BASE}/events`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                communityEvents = data.events || [];
+                renderEvents();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                communityEvents = [];
+                renderEvents();
+            } finally {
+                _apiEnd();
+            }
+        }
+
         // Lazy-load available apps when <details> is expanded
         document.addEventListener('DOMContentLoaded', () => {
             const details = document.getElementById('available-details');
@@ -1453,6 +1555,60 @@
 
         // --- Helpers ---
         const getLocalDate = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+        function formatTimeAgo(dateStr) {
+            if (!dateStr) return t.timeJustNow;
+            const eventDate = new Date(dateStr);
+            if (Number.isNaN(eventDate.getTime())) return t.timeJustNow;
+            const diffMs = Date.now() - eventDate.getTime();
+            const minutes = Math.max(0, Math.floor(diffMs / 60000));
+            if (minutes < 1) return t.timeJustNow;
+            if (minutes < 60) return t.timeMinAgo.replace('{count}', minutes);
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return t.timeHourAgo.replace('{count}', hours);
+            const days = Math.floor(hours / 24);
+            return t.timeDayAgo.replace('{count}', days);
+        }
+
+        function renderEvents() {
+            const listEl = document.getElementById('events-list');
+            const toggleEl = document.getElementById('events-toggle');
+            if (!listEl || !toggleEl) return;
+
+            const visibleEvents = eventsExpanded ? communityEvents : communityEvents.slice(0, 2);
+            listEl.className = eventsExpanded ? 'events-list expanded' : 'events-list';
+
+            if (communityEvents === null) {
+                listEl.innerHTML = `<div class="event-time">${t.pulseLoading}</div>`;
+                toggleEl.style.display = 'none';
+                return;
+            }
+
+            if (!communityEvents.length) {
+                listEl.innerHTML = `<div class="event-time">${t.pulseEmpty}</div>`;
+                toggleEl.style.display = 'none';
+                return;
+            }
+
+            listEl.innerHTML = visibleEvents.map(event => {
+                const text = lang === 'ru' ? event.text_ru : event.text_en;
+                return `
+                    <div class="event-item">
+                        <div class="event-text">${text}</div>
+                        <div class="event-time">${formatTimeAgo(event.created_at)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            toggleEl.style.display = communityEvents.length > 2 ? '' : 'none';
+            toggleEl.innerText = eventsExpanded ? t.pulseCollapse : t.pulseExpand;
+        }
+
+        function toggleEventsExpanded() {
+            eventsExpanded = !eventsExpanded;
+            renderEvents();
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
 
         function getAvatar(name) {
             const colors = ['#f5625d', '#f5b55d', '#5df562', '#5dcbf5', '#5d62f5', '#cb5df5'];
