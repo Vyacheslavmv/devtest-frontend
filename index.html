@@ -556,9 +556,9 @@
         .chip-scroll::-webkit-scrollbar { display: none; }
         .chip {
             flex-shrink: 0;
-            padding: 6px 14px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 14px;
             background: rgba(142, 142, 147, 0.15);
             color: var(--text-color);
             cursor: pointer;
@@ -566,6 +566,107 @@
             border: none;
         }
         .chip:active { opacity: 0.7; }
+
+        /* Meta indicator chips (test cards / project badges) */
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            background: rgba(142, 142, 147, 0.12);
+            color: var(--hint-color);
+            border: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: opacity 0.15s;
+        }
+        .meta-chip:active { opacity: 0.65; }
+        .meta-chip.accent-green { background: rgba(52,199,89,0.15); color: #34c759; }
+        .meta-chip.accent-blue { background: rgba(51,144,236,0.15); color: var(--link-color); }
+        .meta-chip.accent-yellow { background: rgba(255,204,0,0.15); color: #e6b800; }
+        .meta-chip.accent-orange { background: rgba(255,149,0,0.15); color: #ff9500; }
+        .meta-chip.accent-red { background: rgba(255,59,48,0.15); color: #ff3b30; }
+
+        /* Dev instruction accordion */
+        .dev-instruction {
+            margin-top: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--secondary-bg-color);
+        }
+        .dev-instruction summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            list-style: none;
+            color: var(--text-color);
+        }
+        .dev-instruction summary::-webkit-details-marker { display: none; }
+        .dev-instruction .dev-instruction-body {
+            padding: 0 12px 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--hint-color);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Dashboard gradient */
+        .dashboard-block {
+            background: linear-gradient(135deg, rgba(51,144,236,0.12) 0%, rgba(52,199,89,0.10) 100%);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+        .dashboard-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .dashboard-row:last-child { margin-bottom: 0; }
+        .dashboard-label {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+        .dashboard-value {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* Tester 14-day progress bar inside project cards */
+        .tester-progress {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .tester-progress-bar {
+            flex: 1;
+            height: 5px;
+            background: rgba(142,142,147,0.18);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .tester-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .tester-progress-label {
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -835,9 +936,9 @@
                 inviteBlock1Title: "📢 Опубликовать на нашей Бирже",
                 inviteBlock1Btn: "Скопировать и опубликовать",
                 inviteBlock2Title: "💬 Предложить взаимный тест в ЛС",
-                inviteBlock2Btn: "Скопировать и открыть Избранное",
+                inviteBlock2Btn: "Скопировать и поделиться",
                 inviteBlock3Title: "🔗 Только инвайт-ссылка",
-                inviteBlock3Btn: "Скопировать и открыть Избранное",
+                inviteBlock3Btn: "Скопировать и поделиться",
                 inviteDescLabel: "ℹ️ Описание: ",
                 inviteBlock1Text: "📱 Приложение: {name}{instr}\n🤖 Взять на тест (ссылка в трекер):\n👉 {link}\n\nБеру ваши проекты в ответ! Бот поможет не забывать про ежедневные клики и прозрачно проверять тестеров.",
                 inviteBlock2Text: "Привет! Взаимный тест? Мое приложение: {name}.\n\nЯ использую бота в TG для учета — не нужно каждый день списываться, бот всё трекает сам.\n\nДобавь свой проект в систему, присылай мне инвайт, я сразу возьму на тест!\n\nМоя ссылка: {link}",
@@ -870,18 +971,27 @@
                 // Karma
                 karmaLabel: "☯️ Карма: {karma}",
                 karmaRewardGood: "👍 Хороший тестер",
-                karmaRewardBug: "🐛 Нашёл баг",
+                karmaRewardBug: "� Ценный фидбек / Баг",
                 karmaToast: "☯️ Награда отправлена тестеру!",
                 karmaAlreadyLiked: "Вы уже наградили этого тестера за это приложение",
+                karmaLimitReached: "Лимит наград для этого приложения исчерпан",
                 karmaShowcase: "☯️ {karma}",
                 karmaPopupTitle: "Награда",
-                karmaPopupMessage: "Выберите тип награды для тестера",
+                karmaPopupMessage: "Выберите тип награды для тестера.\n👍 = +1 ☯️  💡 = +2 ☯️",
                 karmaBreakdownTitle: "☯️ Карма: {karma}",
                 karmaBreakdownGood: "👍 Хороший тестер: {count}",
-                karmaBreakdownBug: "🐛 Нашёл баг: {count}",
-                karmaBreakdownTitle: "Карма",
-                karmaBreakdownGood: "👍 Хорошие тесты: {count}",
-                karmaBreakdownBug: "🐛 Найденные баги: {count}",
+                karmaBreakdownBug: "💡 Ценный фидбек: {count}",
+                // Chip tooltips
+                chipTooltipDays: "Приложение опубликовано {days} дн. назад",
+                chipTooltipTesters: "Сейчас {count} активных тестеров",
+                chipTooltipTestDay: "Вы тестируете {days}-й день из 14.\nДни скриншотов: 1, 7, 14.",
+                chipTooltipScreenshotDay: "📸 Сегодня день обязательного скриншота!",
+                // Progress bar
+                progressLabel: "{day}/14 дн.",
+                progressComplete: "🎉 Тест завершён!",
+                // Warnings
+                warningOldApp: "⚠️ Этот проект на тесте уже более 14 дней. Пора публиковать релиз и удалить проект.",
+                warningOldChip: "⚠️ 14+",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
                 visibilityPrivate: "🔴 Скрыто из Витрины",
@@ -971,11 +1081,11 @@
                 inviteModalTitle: "Invite testers",
                 inviteClose: "Close",
                 inviteBlock1Title: "📢 Post on our Exchange",
-                inviteBlock1Btn: "Copy and publish",
+                inviteBlock1Btn: "Copy & Publish",
                 inviteBlock2Title: "💬 Offer mutual test in DM",
-                inviteBlock2Btn: "Copy and open Saved Messages",
+                inviteBlock2Btn: "Copy & Share",
                 inviteBlock3Title: "🔗 Just the invite link",
-                inviteBlock3Btn: "Copy and open Saved Messages",
+                inviteBlock3Btn: "Copy & Share",
                 inviteDescLabel: "ℹ️ Description: ",
                 inviteBlock1Text: "📱 App: {name}{instr}\n🤖 Take for testing (tracker link):\n👉 {link}\n\nI'll test yours in return! The bot helps track daily check-ins and transparently monitor testers.",
                 inviteBlock2Text: "Hey! Mutual test? My app: {name}.\n\nI use a TG bot for tracking — no need to message daily, the bot tracks everything.\n\nAdd your project to the system, send me an invite, I'll start testing right away!\n\nMy link: {link}",
@@ -1008,18 +1118,27 @@
                 // Karma
                 karmaLabel: "☯️ Karma: {karma}",
                 karmaRewardGood: "👍 Good tester",
-                karmaRewardBug: "🐛 Found a bug",
+                karmaRewardBug: "� Valuable Feedback / Bug",
                 karmaToast: "☯️ Reward sent to the tester!",
                 karmaAlreadyLiked: "You already rewarded this tester for this app",
+                karmaLimitReached: "Karma limit reached for this app",
                 karmaShowcase: "☯️ {karma}",
                 karmaPopupTitle: "Reward",
-                karmaPopupMessage: "Choose reward type for the tester",
+                karmaPopupMessage: "Choose reward type for the tester.\n👍 = +1 ☯️  💡 = +2 ☯️",
                 karmaBreakdownTitle: "☯️ Karma: {karma}",
                 karmaBreakdownGood: "👍 Good tester: {count}",
-                karmaBreakdownBug: "🐛 Found a bug: {count}",
-                karmaBreakdownTitle: "Karma",
-                karmaBreakdownGood: "👍 Good tests: {count}",
-                karmaBreakdownBug: "🐛 Bugs found: {count}",
+                karmaBreakdownBug: "💡 Valuable feedback: {count}",
+                // Chip tooltips
+                chipTooltipDays: "App published {days} days ago",
+                chipTooltipTesters: "Currently {count} active testers",
+                chipTooltipTestDay: "You've been testing for {days} of 14 days.\nScreenshot days: 1, 7, 14.",
+                chipTooltipScreenshotDay: "📸 Today is a mandatory screenshot day!",
+                // Progress bar
+                progressLabel: "{day}/14 d.",
+                progressComplete: "🎉 Test complete!",
+                // Warnings
+                warningOldApp: "⚠️ This project has been in testing for over 14 days. Time to publish your release and delete the project.",
+                warningOldChip: "⚠️ 14+",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
                 visibilityPrivate: "🔴 Hidden from Showcase",
@@ -1318,7 +1437,9 @@
                 visibilityStats = {
                     ownerKarma: data.karma || 0,
                     rank: data.rank || 0,
-                    total_developers: data.total_developers || 0
+                    total_developers: data.total_developers || 0,
+                    my_active_tests: data.my_active_tests || 0,
+                    need_more: data.need_more || 0
                 };
                 
                 renderProjects();
@@ -1390,23 +1511,29 @@
         function renderCompactMeta(daysSincePublish, activeTestersCount, isNew = false, userTestingDay = null) {
             const parts = [];
             if (typeof daysSincePublish === 'number' && daysSincePublish >= 0) {
-                parts.push(t.daysShort.replace('{days}', daysSincePublish));
+                const dayLabel = t.daysShort.replace('{days}', daysSincePublish);
+                const tooltip = t.chipTooltipDays.replace('{days}', daysSincePublish);
+                parts.push(`<button class="meta-chip" onclick="showToast('${tooltip.replace(/'/g, "\\'")}')">${dayLabel}</button>`);
             }
             if (typeof activeTestersCount === 'number') {
-                parts.push(t.testersShort.replace('{count}', activeTestersCount));
+                const testerLabel = t.testersShort.replace('{count}', activeTestersCount);
+                const tooltip = t.chipTooltipTesters.replace('{count}', activeTestersCount);
+                parts.push(`<button class="meta-chip" onclick="showToast('${tooltip.replace(/'/g, "\\'")}')">${testerLabel}</button>`);
             }
             if (typeof userTestingDay === 'number' && userTestingDay > 0) {
                 const dayText = t.myTestDayShort.replace('{days}', userTestingDay);
-                const screenshotIcon = [1, 7, 14].includes(userTestingDay) ? ' 📸' : '';
-                parts.push(`<span style="cursor: pointer;" onclick="showTestDayPopup(${userTestingDay})">${dayText}${screenshotIcon}</span>`);
+                const isScreenshot = [1, 7, 14].includes(userTestingDay);
+                const screenshotIcon = isScreenshot ? ' 📸' : '';
+                const chipClass = isScreenshot ? 'meta-chip accent-orange' : 'meta-chip accent-blue';
+                parts.push(`<button class="${chipClass}" onclick="showTestDayPopup(${userTestingDay})">${dayText}${screenshotIcon}</button>`);
             }
             if (isNew) {
-                parts.unshift(`<span style="color: #34c759; font-weight: 600;">${t.newBadge}</span>`);
+                parts.unshift(`<button class="meta-chip accent-green">${t.newBadge}</button>`);
             }
             if (parts.length === 0) {
                 return '';
             }
-            return `<div style="font-size: 13px; color: var(--hint-color); margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">${parts.map(part => `<span>${part}</span>`).join('')}</div>`;
+            return `<div style="margin-bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">${parts.join('')}</div>`;
         }
 
         function openTelegramProfile(username, event = null) {
@@ -1516,9 +1643,9 @@
                 let devInfoHtml = '';
                 if (test.instructions) {
                     devInfoHtml = `
-                        <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;" onclick="event.stopPropagation();">
-                            <summary style="font-size: 13px; font-weight: 500; color: var(--text-color); cursor: pointer; outline: none;">${t.devInfo}</summary>
-                            <div style="font-size: 13px; color: var(--hint-color); margin-top: 8px; white-space: pre-wrap;">${test.instructions}</div>
+                        <details class="dev-instruction" onclick="event.stopPropagation();">
+                            <summary>${t.devInfo} <span class="details-arrow">▼</span></summary>
+                            <div class="dev-instruction-body">${test.instructions}</div>
                         </details>
                     `;
                 }
@@ -1597,9 +1724,9 @@
                 let devInfoHtml = '';
                 if (test.instructions) {
                     devInfoHtml = `
-                        <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;" onclick="event.stopPropagation();">
-                            <summary style="font-size: 13px; font-weight: 500; color: var(--text-color); cursor: pointer; outline: none;">${t.devInfo}</summary>
-                            <div style="font-size: 13px; color: var(--hint-color); margin-top: 8px; white-space: pre-wrap;">${test.instructions}</div>
+                        <details class="dev-instruction" onclick="event.stopPropagation();">
+                            <summary>${t.devInfo} <span class="details-arrow">▼</span></summary>
+                            <div class="dev-instruction-body">${test.instructions}</div>
                         </details>
                     `;
                 }
@@ -1653,12 +1780,17 @@
                     let devInfoHtml = '';
                     if (app.instructions) {
                         devInfoHtml = `
-                            <details style="margin-bottom: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; padding: 8px;">
-                                <summary style="font-size: 13px; font-weight: 500; color: var(--text-color); cursor: pointer; outline: none;">${t.devInfo}</summary>
-                                <div style="font-size: 13px; color: var(--hint-color); margin-top: 8px; white-space: pre-wrap;">${app.instructions}</div>
+                            <details class="dev-instruction">
+                                <summary>${t.devInfo} <span class="details-arrow">▼</span></summary>
+                                <div class="dev-instruction-body">${app.instructions}</div>
                             </details>
                         `;
                     }
+
+                    // Accent warning chip for 14+ day apps
+                    const oldChipHtml = (app.days_since_publish && app.days_since_publish >= 14) 
+                        ? `<button class="meta-chip accent-orange" onclick="showToast('${t.warningOldApp.replace(/'/g, "\\'")}'); event.stopPropagation();">${t.warningOldChip}</button>` 
+                        : '';
                     
                     card.innerHTML = `
                         <div class="card-header">
@@ -1667,9 +1799,12 @@
                                 <div class="card-title">${app.name}</div>
                                 <div class="card-subtitle">${app.package_name}</div>
                             </div>
-                            ${app.owner_karma ? `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,204,0,0.15); color: #ffcc00; font-weight: 600; margin-left: auto; cursor: pointer;" onclick="showKarmaBreakdown(${app.owner_id || 0}); event.stopPropagation();">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</span>` : ''}
+                            ${app.owner_karma ? `<button class="meta-chip accent-yellow" style="margin-left: auto;" onclick="showKarmaBreakdown(${app.owner_id || 0}); event.stopPropagation();">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</button>` : ''}
                         </div>
-                        ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
+                        <div style="margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                            ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
+                            ${oldChipHtml}
+                        </div>
                         ${devInfoHtml}
                         <div class="action-row">
                             <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="return openTelegramProfile('${ownerUsername}', event)">
@@ -1700,20 +1835,31 @@
                 return;
             }
 
-            const reminder = document.createElement('div');
-            reminder.style.cssText = "background-color: rgba(255, 204, 0, 0.2); color: var(--text-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;";
-            reminder.innerText = t.deleteReminder;
-            container.appendChild(reminder);
+            // Dismissible delete reminder
+            if (localStorage.getItem('hideDeleteReminder') !== 'true') {
+                const reminder = document.createElement('div');
+                reminder.style.cssText = "background-color: rgba(255, 204, 0, 0.2); color: var(--text-color); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.4; display: flex; align-items: flex-start; gap: 8px;";
+                reminder.innerHTML = `<span style="flex: 1;">${t.deleteReminder}</span><button onclick="this.parentElement.remove(); localStorage.setItem('hideDeleteReminder','true');" style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--hint-color); flex-shrink: 0; padding: 0; line-height: 1;">✕</button>`;
+                container.appendChild(reminder);
+            }
 
-            // Simplified karma header
-            if (visibilityStats && visibilityStats.ownerKarma !== undefined) {
-                const karmaHtml = `
-                    <div style="background: var(--secondary-bg-color); border-radius: 16px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="showKarmaBreakdown(${userId})">
-                        <span style="font-size: 18px; font-weight: 700;">☯️ ${visibilityStats.ownerKarma}</span>
-                        <span style="font-size: 13px; color: var(--hint-color);">${t.karmaLabel.replace('{karma}', visibilityStats.ownerKarma)}</span>
+            // Developer Dashboard block
+            if (visibilityStats) {
+                const dashHtml = `
+                    <div class="dashboard-block">
+                        <div class="dashboard-row">
+                            <span class="dashboard-label">${t.visibilityTitle}</span>
+                            <button class="meta-chip accent-yellow" onclick="showKarmaBreakdown(${userId})">☯️ ${visibilityStats.ownerKarma}</button>
+                        </div>
+                        <div class="dashboard-row">
+                            <span class="dashboard-label">${t.activeTestsLabel}</span>
+                            <span class="dashboard-value" style="color: var(--link-color);">${visibilityStats.my_active_tests}</span>
+                        </div>
+                        ${visibilityStats.rank ? `<div class="dashboard-row"><span class="dashboard-label">${t.rankLabel.replace('{rank}', visibilityStats.rank).replace('{total}', visibilityStats.total_developers)}</span><button class="meta-chip accent-blue" onclick="showToast('${t.visibilityHint.replace(/'/g, "\\'")}')">🏆 #${visibilityStats.rank}</button></div>` : ''}
+                        ${visibilityStats.need_more > 0 ? `<div class="dashboard-row"><span class="dashboard-label" style="color: #ff9500;">${t.needMore.replace('{count}', visibilityStats.need_more)}</span></div>` : ''}
                     </div>
                 `;
-                container.insertAdjacentHTML('beforeend', karmaHtml);
+                container.insertAdjacentHTML('beforeend', dashHtml);
             }
 
             const today = getLocalDate();
@@ -1729,6 +1875,12 @@
             myProjects.forEach(project => {
                 const card = document.createElement('div');
                 card.className = 'card';
+
+                // Check if app is 14+ days old
+                const appDays = project.created_at ? (Math.floor((todayDate - new Date(project.created_at)) / (1000*60*60*24)) + 1) : 0;
+                const isOldApp = appDays >= 14;
+                
+                const likesAvailable = project.likes_max - project.likes_used;
                 
                 let testersHtml = '';
                 if (project.testers && project.testers.length > 0) {
@@ -1767,35 +1919,62 @@
                         }
 
                         let screenshotDayHtml = '';
+                        let testerDay = 0;
                         if (tester.start_date) {
                             const startDt = new Date(tester.start_date);
-                            const testerDay = Math.floor((todayDate - startDt) / (1000*60*60*24)) + 1;
+                            testerDay = Math.floor((todayDate - startDt) / (1000*60*60*24)) + 1;
                             if ([1, 7, 14].includes(testerDay)) {
                                 screenshotDayHtml = `<span onclick="showScreenshotDayAlert()" style="cursor: pointer; font-size: 16px;">📸</span>`;
                             }
                         }
                         
-                        // Karma reward button
-                        const alreadyLiked = (project.likes || []).some(l => l.tester_id === tester.tester_id);
-                        const karmaHtml = alreadyLiked
-                            ? `<span style="font-size: 14px; opacity: 0.4;" title="☯️">+☯️</span>`
-                            : `<span onclick="showKarmaPopup(${project.id}, ${tester.tester_id})" style="cursor: pointer; font-size: 14px;">+☯️</span>`;
+                        // Karma reward button - HIDE when no likes available
+                        let karmaHtml = '';
+                        if (likesAvailable > 0) {
+                            const alreadyLiked = (project.likes || []).some(l => l.tester_id === tester.tester_id);
+                            karmaHtml = alreadyLiked
+                                ? `<span style="font-size: 14px; opacity: 0.4;" title="☯️">+☯️</span>`
+                                : `<span onclick="showKarmaPopup(${project.id}, ${tester.tester_id})" style="cursor: pointer; font-size: 14px;">+☯️</span>`;
+                        } else {
+                            const alreadyLiked = (project.likes || []).some(l => l.tester_id === tester.tester_id);
+                            if (alreadyLiked) {
+                                karmaHtml = `<span style="font-size: 14px; opacity: 0.4;" title="☯️">+☯️</span>`;
+                            }
+                        }
                         
                         const trashHtml = `<span onclick="deleteTester(${project.id}, ${tester.tester_id}, '${cleanUsername || tester.tester_id}')" style="cursor: pointer; font-size: 16px;">🗑️</span>`;
+
+                        // 14-day progress bar per tester
+                        let progressHtml = '';
+                        if (tester.start_date) {
+                            const day = Math.min(testerDay, 14);
+                            const pct = Math.min(100, Math.round((day / 14) * 100));
+                            const barColor = day >= 14 ? '#34c759' : 'var(--link-color)';
+                            const label = day >= 14 ? t.progressComplete : t.progressLabel.replace('{day}', day);
+                            progressHtml = `
+                                <div class="tester-progress">
+                                    <div class="tester-progress-bar"><div class="tester-progress-fill" style="width: ${pct}%; background: ${barColor};"></div></div>
+                                    <span class="tester-progress-label" style="color: ${barColor};">${label}</span>
+                                </div>
+                            `;
+                        }
                             
                         testersHtml += `
-                            <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    ${nameHtml}
-                                    ${screenshotDayHtml}
-                                    ${bellHtml}
-                                    ${karmaHtml}
+                            <li style="display: flex; flex-direction: column; margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        ${nameHtml}
+                                        ${screenshotDayHtml}
+                                        ${bellHtml}
+                                        ${karmaHtml}
+                                    </div>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        ${statusHtml}
+                                        <span style="display: inline-block; width: 1px; height: 16px; background: rgba(142, 142, 147, 0.4); margin: 0 2px;"></span>
+                                        ${trashHtml}
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    ${statusHtml}
-                                    <span style="display: inline-block; width: 1px; height: 16px; background: rgba(142, 142, 147, 0.4); margin: 0 2px;"></span>
-                                    ${trashHtml}
-                                </div>
+                                ${progressHtml}
                             </li>
                         `;
                     });
@@ -1807,6 +1986,7 @@
                 const visibilityBadge = (() => {
                     const vq = project.visibility_quota;
                     const quotaColor = vq >= 3 ? '#34c759' : vq > 0 ? '#ff9500' : '#ff3b30';
+                    const quotaClass = vq >= 3 ? 'accent-green' : vq > 0 ? 'accent-orange' : 'accent-red';
                     let badges = '';
                     
                     // 🆕 badge for new apps
@@ -1820,22 +2000,32 @@
                             const mi = String(exp.getMinutes()).padStart(2, '0');
                             newLabel = t.newBadgeUntil.replace('{date}', `${dd}.${mm} ${hh}:${mi}`);
                         }
-                        badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(52,199,89,0.15); color: #34c759; font-weight: 600; cursor: pointer;" onclick="showNewBadgeToast()">${newLabel}</span>`;
+                        badges += `<button class="meta-chip accent-green" onclick="showNewBadgeToast()">${newLabel}</button>`;
                     }
                     
                     // 👁 Visibility quota
-                    badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: ${quotaColor}1a; color: ${quotaColor}; font-weight: 600; cursor: pointer;" onclick="showVisibilityToast()">👁 ${vq}/3</span>`;
+                    badges += `<button class="meta-chip ${quotaClass}" onclick="showVisibilityToast()">👁 ${vq}/3</button>`;
                     
                     // 🏆 Rank (only when 3/3)
                     if (vq >= 3 && visibilityStats.rank) {
-                        badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(51,144,236,0.15); color: var(--link-color); font-weight: 600;">🏆 #${visibilityStats.rank}</span>`;
+                        badges += `<button class="meta-chip accent-blue" onclick="showToast('${t.visibilityHint.replace(/'/g, "\\'")}')">🏆 #${visibilityStats.rank}</button>`;
                     }
                     
                     // ☯️ Likes used/max
-                    badges += `<span style="font-size: 12px; padding: 2px 8px; border-radius: 8px; background: rgba(255,204,0,0.15); color: #e6b800; font-weight: 600;">☯️ ${project.likes_used}/${project.likes_max}</span>`;
+                    badges += `<button class="meta-chip accent-yellow" onclick="showKarmaBreakdown(${userId})">☯️ ${project.likes_used}/${project.likes_max}</button>`;
+
+                    // ⚠️ Old app warning chip
+                    if (isOldApp) {
+                        badges += `<button class="meta-chip accent-orange" onclick="showToast('${t.warningOldApp.replace(/'/g, "\\'")}')">⚠️ 14+</button>`;
+                    }
                     
                     return badges;
                 })();
+
+                // Old app inline warning
+                const oldAppWarningHtml = isOldApp
+                    ? `<div style="background: rgba(255,149,0,0.12); border: 1px solid rgba(255,149,0,0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; font-size: 13px; color: #ff9500; line-height: 1.4;">${t.warningOldApp}</div>`
+                    : '';
                 
                 card.innerHTML = `
                     <div class="card-header" style="margin-bottom: 8px;">
@@ -1846,9 +2036,10 @@
                         </div>
                         <button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openEditModal(${project.id})">✏️</button>
                     </div>
-                    <div style="font-size: 13px; color: var(--hint-color); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                         ${visibilityBadge}
                     </div>
+                    ${oldAppWarningHtml}
                     <div class="testers-section">
                         <div class="testers-title">${t.testersList} (${project.testers ? project.testers.length : 0})</div>
                         ${testersHtml}
@@ -2046,12 +2237,14 @@
                     showToast(t.karmaToast);
                     // Update local state to hide the button
                     const proj = myProjects.find(p => p.id === appId);
-                    if (proj && proj.likes) {
-                        proj.likes.push({ tester_id: testerId, type: rewardType });
+                    if (proj) {
+                        if (proj.likes) proj.likes.push({ tester_id: testerId, type: rewardType });
+                        proj.likes_used = (proj.likes_used || 0) + 1;
                     }
                     renderProjects();
                 } else {
-                    showToast(result.message === 'Already rewarded this tester' ? t.karmaAlreadyLiked : result.message);
+                    const msg = (result.message && result.message.includes('limit')) ? t.karmaLimitReached : t.karmaAlreadyLiked;
+                    showToast(msg);
                 }
             } catch (error) {
                 console.error("Karma error:", error);
@@ -2075,21 +2268,6 @@
             } else {
                 // Fallback: just send 'good'
                 sendKarmaReward(appId, testerId, 'good');
-            }
-        }
-
-        async function showKarmaBreakdown(targetUserId) {
-            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            try {
-                const resp = await fetch(`${API_BASE}/users/${targetUserId}/karma/breakdown`);
-                const data = await resp.json();
-                const msg = t.karmaBreakdownTitle.replace('{karma}', data.total || 0)
-                    + '\n\n' + t.karmaBreakdownGood.replace('{count}', data.good || 0)
-                    + '\n' + t.karmaBreakdownBug.replace('{count}', data.bug || 0);
-                if (tg.showAlert) tg.showAlert(msg);
-                else alert(msg);
-            } catch (e) {
-                console.error('Karma breakdown error:', e);
             }
         }
 
@@ -2284,12 +2462,12 @@
                 <div style="${cardStyle}">
                     <div style="${titleStyle}">${t.inviteBlock2Title}</div>
                     <div style="${preStyle}">${block2Text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-                    <button class="btn btn-secondary" style="width: 100%; background-color: var(--bg-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="copyAndAction('${escapeForAttr(block2Text)}', 'saved')">${t.inviteBlock2Btn}</button>
+                    <button class="btn" style="width: 100%; background: rgba(51,144,236,0.12); color: var(--link-color); border: none;" onclick="copyAndAction('${escapeForAttr(block2Text)}', 'saved')">${t.inviteBlock2Btn}</button>
                 </div>
                 <div style="${cardStyle}">
                     <div style="${titleStyle}">${t.inviteBlock3Title}</div>
                     <div style="${preStyle}">${block3Text}</div>
-                    <button class="btn btn-secondary" style="width: 100%; background-color: var(--bg-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="copyAndAction('${escapeForAttr(block3Text)}', 'saved')">${t.inviteBlock3Btn}</button>
+                    <button class="btn" style="width: 100%; background: rgba(51,144,236,0.12); color: var(--link-color); border: none;" onclick="copyAndAction('${escapeForAttr(block3Text)}', 'saved')">${t.inviteBlock3Btn}</button>
                 </div>
             `;
 
