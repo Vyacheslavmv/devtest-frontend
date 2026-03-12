@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -643,28 +643,28 @@
             font-weight: 700;
         }
 
-        /* Tester 14-day progress bar inside project cards */
-        .tester-progress {
+        /* App 14-day progress bar inside project cards */
+        .app-progress {
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-top: 4px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
-        .tester-progress-bar {
+        .app-progress-bar {
             flex: 1;
-            height: 5px;
+            height: 8px;
             background: rgba(142,142,147,0.18);
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
         }
-        .tester-progress-fill {
+        .app-progress-fill {
             height: 100%;
-            border-radius: 3px;
-            transition: width 0.4s ease;
+            border-radius: 4px;
+            transition: width 0.5s ease;
         }
-        .tester-progress-label {
-            font-size: 11px;
-            font-weight: 600;
+        .app-progress-label {
+            font-size: 12px;
+            font-weight: 700;
             white-space: nowrap;
         }
 
@@ -904,6 +904,19 @@
         </div>
     </div>
 
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal-overlay" onclick="closeReportModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="t-reportModalTitle">📸 Отправка отчёта</h3>
+            <p id="t-reportModalHint" style="color: #ff9500; font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 12px;">Не забудьте прикрепить сам скриншот, когда откроется Telegram!</p>
+            <div class="form-group">
+                <textarea id="report-text" class="form-input" rows="4" style="resize: none;"></textarea>
+                <div id="chips-report" class="chip-scroll" style="margin-top: 8px;"></div>
+            </div>
+            <button class="btn btn-primary" id="t-reportBtnSend" onclick="sendReport()">💬 Открыть чат</button>
+        </div>
+    </div>
+
     <script>
         // Initialize Telegram Web App
         const tg = window.Telegram.WebApp;
@@ -1010,7 +1023,7 @@
                 statusDaysAgo: "дн. назад",
                 // Timer
                 timerRemaining: "⏳ Осталось {sec} сек...",
-                antiFraudAlert: "❌ Быстрое прокликивание убьет стату нам обоим! Google Play проверяет вовлеченность. Потрать эти 15 секунд на честный тест открытого приложения (покликай меню), чтобы мы все успешно прошли модерацию.",
+                antiFraudAlert: "⚠️ Google Play жестко проверяет вовлеченность (до 15 сек на сессию). Быстрые клики убьют стату нам обоим!\n\nПроведите это время с пользой: походи по меню, найдите баг или у тебя появится совет. За ценный фидбек разработчики дают Карму ☯️.\nА высокая Карма — это отличный способ поднять уже ВАШИ проекты в ТОП витрины!",
                 confirmed: "✅ Засчитано!",
                 daysShort: "📅 {days} дн.",
                 testersShort: "👥 {count}",
@@ -1028,7 +1041,7 @@
                 // Karma
                 karmaLabel: "☯️ Карма: {karma}",
                 karmaRewardGood: "👍 Хороший тестер",
-                karmaRewardBug: "� Ценный фидбек / Баг",
+                karmaRewardBug: "💡 Ценный фидбек / Баг",
                 karmaToast: "☯️ Награда отправлена тестеру!",
                 karmaAlreadyLiked: "Вы уже наградили этого тестера за это приложение",
                 karmaLimitReached: "Лимит наград для этого приложения исчерпан",
@@ -1076,7 +1089,21 @@
                 // Delete tester
                 deleteTesterConfirm: "Удалить тестера @{name} из этого проекта?",
                 // Open button
-                openBtn: "📱 Открыть"
+                openBtn: "📱 Открыть",
+                // Karma info popup
+                karmaInfoText: "☯️ Карма — это ваша репутация на платформе.\n\nЗа что дают:\n👍 Базовый тест: +1\n💡 Ценный фидбек или Баг: +2\n\nКак это работает?\nКарма — решающий фактор на Витрине. При одинаковом количестве активных тестов выше в списке будет тот разработчик, у которого больше Кармы. Помогайте другим качественно, чтобы продвигать свои проекты!",
+                // Rank popup
+                rankPopupText: "🏆 Ваша позиция на Витрине: #{rank} из {total}\n\nСколько активных тестов нужно для попадания в ТОП:\n\nTOP-1: {t1} тестов\nTOP-2: {t2} тестов\nTOP-3: {t3} тестов\nTOP-4: {t4} тестов\nTOP-5: {t5} тестов\n\nУ вас сейчас: {my} активных тестов",
+                // Karma chip info
+                karmaChipInfoText: "☯️ Благодарность тестеру\n\nВы можете по своему желанию отблагодарить тестера, присвоив ему Карму.\n\nДоступно 2 благодарности:\n• 1-я — доступна сразу после начала тестирования\n• 2-я — открывается после 7-го дня тестов\n\nТипы наград:\n👍 Хороший тестер: +1 ☯️\n💡 Ценный фидбек / Баг: +2 ☯️",
+                // Report modal
+                reportModalTitle: "📸 Отправка отчёта",
+                reportModalHint: "Не забудьте прикрепить сам скриншот, когда откроется Telegram!",
+                reportPrefill: "Привет! 👋 Это отчёт за контрольный день тестирования. Скриншот прикрепил ниже.\n\n",
+                reportBtnSend: "💬 Открыть чат",
+                reportChipBug: "🐛 Нашёл баг:",
+                reportChipIdea: "💡 Есть идея:",
+                reportChipGood: "✅ Работает отлично"
             },
             en: {
                 tabTests: "My Tests",
@@ -1166,7 +1193,7 @@
                 statusDaysAgo: "days ago",
                 // Timer
                 timerRemaining: "⏳ {sec} sec left...",
-                antiFraudAlert: "❌ Fast clicking will kill stats for both of us! Google Play checks engagement. Spend these 15 seconds honestly testing the open app (click around the menu) so we all pass moderation.",
+                antiFraudAlert: "⚠️ Google Play strictly checks engagement (up to 15 seconds per session). Quick clicks will kill our status!\n\nSpend this time wisely: browse the menu, find a bug, or you will receive a tip. Developers give Karma ☯️ for valuable feedback.\nHigh Karma is a great way to boost YOUR projects to the top of the showcase!",
                 confirmed: "✅ Counted!",
                 daysShort: "📅 {days} d.",
                 testersShort: "👥 {count}",
@@ -1184,7 +1211,7 @@
                 // Karma
                 karmaLabel: "☯️ Karma: {karma}",
                 karmaRewardGood: "👍 Good tester",
-                karmaRewardBug: "� Valuable Feedback / Bug",
+                karmaRewardBug: "💡 Valuable Feedback / Bug",
                 karmaToast: "☯️ Reward sent to the tester!",
                 karmaAlreadyLiked: "You already rewarded this tester for this app",
                 karmaLimitReached: "Karma limit reached for this app",
@@ -1232,7 +1259,21 @@
                 // Delete tester
                 deleteTesterConfirm: "Remove tester @{name} from this project?",
                 // Open button
-                openBtn: "📱 Open"
+                openBtn: "📱 Open",
+                // Karma info popup
+                karmaInfoText: "☯️ Karma is your reputation on the platform.\n\nHow to earn:\n👍 Basic test: +1\n💡 Valuable feedback or Bug: +2\n\nHow does it work?\nKarma is the decisive factor on the Showcase. When developers have equal active tests, the one with more Karma ranks higher. Help others with quality testing to promote your own projects!",
+                // Rank popup
+                rankPopupText: "🏆 Your Showcase position: #{rank} of {total}\n\nActive tests needed for each TOP position:\n\nTOP-1: {t1} tests\nTOP-2: {t2} tests\nTOP-3: {t3} tests\nTOP-4: {t4} tests\nTOP-5: {t5} tests\n\nYou currently have: {my} active tests",
+                // Karma chip info
+                karmaChipInfoText: "☯️ Tester Appreciation\n\nYou can optionally reward your tester by awarding Karma.\n\nYou have 2 rewards available:\n• 1st — available immediately after testing starts\n• 2nd — unlocks after day 7 of testing\n\nReward types:\n👍 Good tester: +1 ☯️\n💡 Valuable Feedback / Bug: +2 ☯️",
+                // Report modal
+                reportModalTitle: "📸 Send Report",
+                reportModalHint: "Don't forget to attach the screenshot once Telegram opens!",
+                reportPrefill: "Hi! 👋 This is a report for a checkpoint testing day. Screenshot attached below.\n\n",
+                reportBtnSend: "💬 Open Chat",
+                reportChipBug: "🐛 Found a bug:",
+                reportChipIdea: "💡 Got an idea:",
+                reportChipGood: "✅ Works great"
             }
         };
 
@@ -1541,7 +1582,8 @@
                     rank: data.rank || 0,
                     total_developers: data.total_developers || 0,
                     my_active_tests: data.my_active_tests || 0,
-                    need_more: data.need_more || 0
+                    need_more: data.need_more || 0,
+                    top_thresholds: data.top_thresholds || {}
                 };
                 
                 renderProjects();
@@ -2001,17 +2043,24 @@
 
             // Developer Dashboard block
             if (visibilityStats) {
+                const vc = myProjects.filter(p => p.is_visible || p.is_app_new).length;
+                const tc = myProjects.length;
+                let visibleLine = '';
+                if (tc === 0) visibleLine = '';
+                else if (vc === tc) visibleLine = t.visibilityAllPublic;
+                else if (vc > 0) visibleLine = t.visibilityPartial.replace('{visible}', vc).replace('{total}', tc);
+                else visibleLine = t.visibilityNone;
+
                 const dashHtml = `
                     <div class="dashboard-block">
                         <div class="dashboard-row">
                             <span class="dashboard-label">${t.visibilityTitle}</span>
-                            <button class="meta-chip accent-yellow" onclick="showKarmaBreakdown(${userId})">☯️ ${visibilityStats.ownerKarma}</button>
+                            <button class="meta-chip accent-yellow" onclick="showKarmaInfo()">☯️ ${visibilityStats.ownerKarma}</button>
                         </div>
+                        ${visibleLine ? `<div class="dashboard-row"><span class="dashboard-label">${visibleLine}</span></div>` : ''}
                         <div class="dashboard-row">
-                            <span class="dashboard-label">${t.activeTestsLabel}</span>
-                            <span class="dashboard-value" style="color: var(--link-color);">${visibilityStats.my_active_tests}</span>
+                            <span class="dashboard-label">⚡ ${t.activeTestsLabel}: ${visibilityStats.my_active_tests}</span>
                         </div>
-                        ${visibilityStats.rank ? `<div class="dashboard-row"><span class="dashboard-label">${t.rankLabel.replace('{rank}', visibilityStats.rank).replace('{total}', visibilityStats.total_developers)}</span><button class="meta-chip accent-blue" onclick="showToast('${t.visibilityHint.replace(/'/g, "\\'")}')">🏆 #${visibilityStats.rank}</button></div>` : ''}
                         ${visibilityStats.need_more > 0 ? `<div class="dashboard-row"><span class="dashboard-label" style="color: #ff9500;">${t.needMore.replace('{count}', visibilityStats.need_more)}</span></div>` : ''}
                     </div>
                 `;
@@ -2100,37 +2149,19 @@
                         
                         const trashHtml = `<span onclick="deleteTester(${project.id}, ${tester.tester_id}, '${cleanUsername || tester.tester_id}')" style="cursor: pointer; font-size: 16px;">🗑️</span>`;
 
-                        // 14-day progress bar per tester
-                        let progressHtml = '';
-                        if (tester.start_date) {
-                            const day = Math.min(testerDay, 14);
-                            const pct = Math.min(100, Math.round((day / 14) * 100));
-                            const barColor = day >= 14 ? '#34c759' : 'var(--link-color)';
-                            const label = day >= 14 ? t.progressComplete : t.progressLabel.replace('{day}', day);
-                            progressHtml = `
-                                <div class="tester-progress">
-                                    <div class="tester-progress-bar"><div class="tester-progress-fill" style="width: ${pct}%; background: ${barColor};"></div></div>
-                                    <span class="tester-progress-label" style="color: ${barColor};">${label}</span>
-                                </div>
-                            `;
-                        }
-                            
                         testersHtml += `
-                            <li style="display: flex; flex-direction: column; margin-bottom: 8px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div style="display: flex; gap: 8px; align-items: center;">
-                                        ${nameHtml}
-                                        ${screenshotDayHtml}
-                                        ${bellHtml}
-                                        ${karmaHtml}
-                                    </div>
-                                    <div style="display: flex; gap: 8px; align-items: center;">
-                                        ${statusHtml}
-                                        <span style="display: inline-block; width: 1px; height: 16px; background: rgba(142, 142, 147, 0.4); margin: 0 2px;"></span>
-                                        ${trashHtml}
-                                    </div>
+                            <li>
+                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                    ${nameHtml}
+                                    ${screenshotDayHtml}
+                                    ${bellHtml}
+                                    ${karmaHtml}
                                 </div>
-                                ${progressHtml}
+                                <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                                    ${statusHtml}
+                                    <span style="display: inline-block; width: 1px; height: 16px; background: rgba(142, 142, 147, 0.4); margin: 0 2px;"></span>
+                                    ${trashHtml}
+                                </div>
                             </li>
                         `;
                     });
@@ -2164,11 +2195,11 @@
                     
                     // 🏆 Rank (only when 3/3)
                     if (vq >= 3 && visibilityStats.rank) {
-                        badges += `<button class="meta-chip accent-blue" onclick="showToast('${t.visibilityHint.replace(/'/g, "\\'")}')">🏆 #${visibilityStats.rank}</button>`;
+                        badges += `<button class="meta-chip accent-blue" onclick="showRankPopup()">🏆 #${visibilityStats.rank}</button>`;
                     }
                     
                     // ☯️ Likes used/max
-                    badges += `<button class="meta-chip accent-yellow" onclick="showKarmaBreakdown(${userId})">☯️ ${project.likes_used}/${project.likes_max}</button>`;
+                    badges += `<button class="meta-chip accent-yellow" onclick="showKarmaChipInfo()">☯️ ${project.likes_used}/${project.likes_max}</button>`;
 
                     // ⚠️ Old app warning chip
                     if (isOldApp) {
@@ -2182,6 +2213,23 @@
                 const oldAppWarningHtml = isOldApp
                     ? `<div style="background: rgba(255,149,0,0.12); border: 1px solid rgba(255,149,0,0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; font-size: 13px; color: #ff9500; line-height: 1.4;">${t.warningOldApp}</div>`
                     : '';
+
+                // App-level 14-day progress bar
+                const appProgressHtml = (() => {
+                    if (appDays <= 0) return '';
+                    const day = Math.min(appDays, 14);
+                    const pct = Math.min(100, Math.round((day / 14) * 100));
+                    let barColor = 'var(--link-color)';
+                    if (day >= 14) barColor = '#34c759';
+                    else if (day >= 12) barColor = '#ff9500';
+                    const label = day >= 14 ? t.progressComplete : t.progressLabel.replace('{day}', day);
+                    return `
+                        <div class="app-progress">
+                            <div class="app-progress-bar"><div class="app-progress-fill" style="width: ${pct}%; background: ${barColor};"></div></div>
+                            <span class="app-progress-label" style="color: ${barColor};">${label}</span>
+                        </div>
+                    `;
+                })();
                 
                 card.innerHTML = `
                     <div class="card-header" style="margin-bottom: 8px;">
@@ -2195,6 +2243,7 @@
                     <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                         ${visibilityBadge}
                     </div>
+                    ${appProgressHtml}
                     ${oldAppWarningHtml}
                     <div class="testers-section">
                         <div class="testers-title">${t.testersList} (${project.testers ? project.testers.length : 0})</div>
@@ -2312,12 +2361,74 @@
             }, 1000);
         }
 
+        let _reportAppId = null;
+        let _reportOwnerUsername = null;
+
         async function handleScreenshotAndConfirm(id, ownerUsername) {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            const confirmed = await confirmStart(id);
-            if (!confirmed) {
-                return;
+            openReportModal(id, ownerUsername);
+        }
+
+        function openReportModal(appId, ownerUsername) {
+            _reportAppId = appId;
+            _reportOwnerUsername = ownerUsername;
+            const textarea = document.getElementById('report-text');
+            textarea.value = t.reportPrefill;
+            // Update localized text
+            document.getElementById('t-reportModalTitle').innerText = t.reportModalTitle;
+            document.getElementById('t-reportModalHint').innerText = t.reportModalHint;
+            document.getElementById('t-reportBtnSend').innerText = t.reportBtnSend;
+            // Render chips
+            const chips = [t.reportChipBug, t.reportChipIdea, t.reportChipGood];
+            const chipsEl = document.getElementById('chips-report');
+            chipsEl.innerHTML = chips.map(ch => `<button type="button" class="chip" onclick="insertReportChip(this.dataset.text)" data-text="${ch.replace(/"/g, '&quot;')}">${ch}</button>`).join('');
+            document.getElementById('report-modal').classList.add('active');
+        }
+
+        function closeReportModal(event) {
+            if (event && event.target !== document.getElementById('report-modal')) return;
+            document.getElementById('report-modal').classList.remove('active');
+            setTimeout(() => { _reportAppId = null; _reportOwnerUsername = null; }, 300);
+        }
+
+        function insertReportChip(chipText) {
+            const textarea = document.getElementById('report-text');
+            if (textarea.value.length > 0 && !textarea.value.endsWith('\n')) {
+                textarea.value += '\n';
             }
+            textarea.value += chipText + ' ';
+            textarea.focus();
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        async function sendReport() {
+            const text = document.getElementById('report-text').value.trim();
+            const ownerUsername = (_reportOwnerUsername || '').replace('@', '').trim();
+            const appId = _reportAppId;
+
+            // Open Telegram chat with prefilled message
+            if (ownerUsername) {
+                const encodedText = encodeURIComponent(text);
+                try {
+                    tg.openTelegramLink('https://t.me/' + ownerUsername + '?text=' + encodedText);
+                } catch (e) {
+                    try {
+                        tg.openLink('https://t.me/' + ownerUsername + '?text=' + encodedText);
+                    } catch (e2) {
+                        window.location.href = 'https://t.me/' + ownerUsername + '?text=' + encodedText;
+                    }
+                }
+            }
+
+            // Close modal
+            document.getElementById('report-modal').classList.remove('active');
+
+            // Confirm checkin
+            if (appId) {
+                await confirmStart(appId);
+            }
+            _reportAppId = null;
+            _reportOwnerUsername = null;
         }
 
         function copyGroupUrl(url) {
@@ -2355,6 +2466,34 @@
         function showActiveTestsToast() {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             showToast(t.visibilityHint);
+        }
+
+        function showKarmaInfo() {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            if (tg.showAlert) tg.showAlert(t.karmaInfoText);
+            else alert(t.karmaInfoText);
+        }
+
+        function showRankPopup() {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            const th = visibilityStats.top_thresholds || {};
+            const msg = t.rankPopupText
+                .replace('{rank}', visibilityStats.rank || '?')
+                .replace('{total}', visibilityStats.total_developers || '?')
+                .replace('{t1}', th['1'] || 0)
+                .replace('{t2}', th['2'] || 0)
+                .replace('{t3}', th['3'] || 0)
+                .replace('{t4}', th['4'] || 0)
+                .replace('{t5}', th['5'] || 0)
+                .replace('{my}', visibilityStats.my_active_tests || 0);
+            if (tg.showAlert) tg.showAlert(msg);
+            else alert(msg);
+        }
+
+        function showKarmaChipInfo() {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            if (tg.showAlert) tg.showAlert(t.karmaChipInfoText);
+            else alert(t.karmaChipInfoText);
         }
 
         function showTestDayPopup(day) {
