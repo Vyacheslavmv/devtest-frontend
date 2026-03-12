@@ -970,7 +970,7 @@
     <div id="karma-modal" class="modal-overlay" onclick="closeKarmaModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 id="karma-modal-title">☯️ Награда тестеру</h3>
-            <p id="karma-modal-desc" style="font-size: 13px; color: var(--hint-color); margin-bottom: 0;">Выберите тип награды</p>
+            <p id="karma-modal-desc" style="font-size: 13px; color: var(--hint-color); margin-bottom: 0;">"Выберите тип награды. Карма поможет тестеру продвигать его проекты."</p>
             <div class="karma-btn-row">
                 <button class="karma-btn-big" onclick="selectKarmaReward('good')">
                     <span class="karma-emoji">👍</span>
@@ -979,7 +979,7 @@
                 </button>
                 <button class="karma-btn-big" onclick="selectKarmaReward('bug')">
                     <span class="karma-emoji">💡</span>
-                    <span class="karma-label" id="karma-btn-bug">Ценный фидбек</span>
+                    <span class="karma-label" id="karma-btn-bug">Ценный фидбек / Баг</span>
                     <span class="karma-sub">+2 ☯️</span>
                 </button>
             </div>
@@ -1181,16 +1181,17 @@
                 // Open button
                 openBtn: "📱 Открыть",
                 // Karma info popup
-                karmaInfoText: "☯️ Карма — это ваша репутация на платформе.\n\nЗа что дают:\n👍 Базовый тест: +1\n💡 Ценный фидбек или Баг: +2\n\nКак это работает?\nКарма — решающий фактор на Витрине. При одинаковом количестве активных тестов выше в списке будет тот разработчик, у которого больше Кармы. Помогайте другим качественно, чтобы продвигать свои проекты!",
+                karmaInfoText: "☯️ Карма — это ваша репутация на платформе.\n\nЗа что дают:\n👍 Базовый тест: +1\n💡 Ценный фидбек или Баг: +2\n\nКак это работает?\nКарма — влияет на позицию на Витрине. При одинаковом количестве активных тестов выше в списке будет тот разработчик, у которого больше Кармы. Помогайте другим качественно, чтобы продвигать свои проекты!",
                 // Rank popup
                 rankPopupText: "🏆 Ваша позиция на Витрине: #{rank} из {total}\n\nСколько активных тестов нужно для попадания в ТОП:\n\nTOP-1: {t1} тестов\nTOP-2: {t2} тестов\nTOP-3: {t3} тестов\nTOP-4: {t4} тестов\nTOP-5: {t5} тестов\n\nУ вас сейчас: {my} активных тестов",
                 // Karma chip info
                 karmaChipInfoText: "☯️ Благодарность тестеру\n\nВы можете по своему желанию отблагодарить тестера, присвоив ему Карму.\n\nДоступно 2 благодарности:\n• 1-я — доступна сразу после начала тестирования\n• 2-я — открывается после 7-го дня тестов\n\nТипы наград:\n👍 Хороший тестер: +1 ☯️\n💡 Ценный фидбек / Баг: +2 ☯️",
+                karmaLimitInfoText: "Лимит наград: 2 на один проект.\n1-я награда доступна в первую неделю.\n2-я награда добавляется со второй недели.\nИспользуйте их, чтобы поощрять тестеров за качественный фидбек!",
                 // Karma modal
                 karmaModalTitle: "☯️ Награда тестеру",
-                karmaModalDesc: "Выберите тип награды",
+                karmaModalDesc: "Выберите тип награды. Карма поможет тестеру продвигать его проекты.",
                 karmaModalGood: "Хороший тестер",
-                karmaModalBug: "Ценный фидбек",
+                karmaModalBug: "Ценный фидбек / Баг",
                 karmaAvailable: "☯️ Доступно: {count}",
                 karmaNoRewards: "☯️ Наград нет",
                 // Showcase karma info
@@ -1360,16 +1361,17 @@
                 // Open button
                 openBtn: "📱 Open",
                 // Karma info popup
-                karmaInfoText: "☯️ Karma is your reputation on the platform.\n\nHow to earn:\n👍 Basic test: +1\n💡 Valuable feedback or Bug: +2\n\nHow does it work?\nKarma is the decisive factor on the Showcase. When developers have equal active tests, the one with more Karma ranks higher. Help others with quality testing to promote your own projects!",
+                karmaInfoText: "☯️ Karma is your reputation on the platform. What it is awarded for: 👍 Basic test: +1 💡 Valuable feedback or bug: +2 How does it work? Karma affects your position in the Showcase. If the number of active tests is the same, the developer with more Karma will be higher in the list. Help others effectively to promote your projects!",
                 // Rank popup
                 rankPopupText: "🏆 Your Showcase position: #{rank} of {total}\n\nActive tests needed for each TOP position:\n\nTOP-1: {t1} tests\nTOP-2: {t2} tests\nTOP-3: {t3} tests\nTOP-4: {t4} tests\nTOP-5: {t5} tests\n\nYou currently have: {my} active tests",
                 // Karma chip info
                 karmaChipInfoText: "☯️ Tester Appreciation\n\nYou can optionally reward your tester by awarding Karma.\n\nYou have 2 rewards available:\n• 1st — available immediately after testing starts\n• 2nd — unlocks after day 7 of testing\n\nReward types:\n👍 Good tester: +1 ☯️\n💡 Valuable Feedback / Bug: +2 ☯️",
+                karmaLimitInfoText: "Reward limit: 2 per project.\nThe 1st reward is available in the first week.\nThe 2nd reward is added from the second week.\nUse them to encourage testers for high-quality feedback!",
                 // Karma modal
                 karmaModalTitle: "☯️ Tester Reward",
-                karmaModalDesc: "Choose reward type",
+                karmaModalDesc: "Select the type of reward. Karma will help the tester promote their projects.",
                 karmaModalGood: "Good tester",
-                karmaModalBug: "Valuable feedback",
+                karmaModalBug: "Valuable feedback / Bug",
                 karmaAvailable: "☯️ Available: {count}",
                 karmaNoRewards: "☯️ No rewards",
                 // Showcase karma info
@@ -2593,8 +2595,7 @@
 
         function showKarmaInfo() {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            if (tg.showAlert) tg.showAlert(t.karmaInfoText);
-            else alert(t.karmaInfoText);
+            showCustomAlert(t.karmaInfoText);
         }
 
         function showRankPopup() {
@@ -2615,8 +2616,7 @@
 
         function showKarmaChipInfo() {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            if (tg.showAlert) tg.showAlert(t.karmaChipInfoText);
-            else alert(t.karmaChipInfoText);
+            showCustomAlert(t.karmaLimitInfoText || t.karmaChipInfoText);
         }
 
         function showShowcaseKarmaInfo(karma) {
