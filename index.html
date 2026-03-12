@@ -716,6 +716,68 @@
             font-weight: 600;
             cursor: pointer;
         }
+        /* Karma reward modal */
+        #karma-modal .modal-content {
+            text-align: center;
+            padding: 24px 20px;
+        }
+        .karma-btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .karma-btn-big {
+            flex: 1;
+            padding: 16px 8px;
+            border-radius: 14px;
+            border: 2px solid rgba(142,142,147,0.2);
+            background: var(--secondary-bg-color);
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+        .karma-btn-big:active {
+            transform: scale(0.95);
+        }
+        .karma-btn-big .karma-emoji { font-size: 32px; display: block; margin-bottom: 6px; }
+        .karma-btn-big .karma-label { font-size: 14px; font-weight: 600; color: var(--text-color); display: block; }
+        .karma-btn-big .karma-sub { font-size: 12px; color: var(--hint-color); display: block; margin-top: 2px; }
+        /* Custom alert overlay */
+        #custom-alert-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10001;
+            background: rgba(0,0,0,0.45);
+            justify-content: center;
+            align-items: center;
+        }
+        #custom-alert-overlay.active { display: flex; }
+        .custom-alert-box {
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 88%;
+            width: 340px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        .custom-alert-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-color);
+            white-space: pre-line;
+            margin-bottom: 16px;
+        }
+        .custom-alert-close {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: var(--button-color, #007aff);
+            color: var(--button-text-color, #fff);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -901,6 +963,34 @@
                 <input type="text" id="edit-group" class="form-input" readonly style="background-color: rgba(142, 142, 147, 0.15); cursor: not-allowed;" onclick="showReadonlyAlert()">
             </div>
             <button class="btn btn-primary" onclick="saveProjectEdit()" id="t-editSave">Сохранить</button>
+        </div>
+    </div>
+
+    <!-- Karma Reward Modal -->
+    <div id="karma-modal" class="modal-overlay" onclick="closeKarmaModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="karma-modal-title">☯️ Награда тестеру</h3>
+            <p id="karma-modal-desc" style="font-size: 13px; color: var(--hint-color); margin-bottom: 0;">Выберите тип награды</p>
+            <div class="karma-btn-row">
+                <button class="karma-btn-big" onclick="selectKarmaReward('good')">
+                    <span class="karma-emoji">👍</span>
+                    <span class="karma-label" id="karma-btn-good">Хороший тестер</span>
+                    <span class="karma-sub">+1 ☯️</span>
+                </button>
+                <button class="karma-btn-big" onclick="selectKarmaReward('bug')">
+                    <span class="karma-emoji">💡</span>
+                    <span class="karma-label" id="karma-btn-bug">Ценный фидбек</span>
+                    <span class="karma-sub">+2 ☯️</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Overlay -->
+    <div id="custom-alert-overlay" onclick="closeCustomAlert(event)">
+        <div class="custom-alert-box" onclick="event.stopPropagation()">
+            <div class="custom-alert-text" id="custom-alert-text"></div>
+            <button class="custom-alert-close" onclick="closeCustomAlert()">OK</button>
         </div>
     </div>
 
@@ -1096,6 +1186,15 @@
                 rankPopupText: "🏆 Ваша позиция на Витрине: #{rank} из {total}\n\nСколько активных тестов нужно для попадания в ТОП:\n\nTOP-1: {t1} тестов\nTOP-2: {t2} тестов\nTOP-3: {t3} тестов\nTOP-4: {t4} тестов\nTOP-5: {t5} тестов\n\nУ вас сейчас: {my} активных тестов",
                 // Karma chip info
                 karmaChipInfoText: "☯️ Благодарность тестеру\n\nВы можете по своему желанию отблагодарить тестера, присвоив ему Карму.\n\nДоступно 2 благодарности:\n• 1-я — доступна сразу после начала тестирования\n• 2-я — открывается после 7-го дня тестов\n\nТипы наград:\n👍 Хороший тестер: +1 ☯️\n💡 Ценный фидбек / Баг: +2 ☯️",
+                // Karma modal
+                karmaModalTitle: "☯️ Награда тестеру",
+                karmaModalDesc: "Выберите тип награды",
+                karmaModalGood: "Хороший тестер",
+                karmaModalBug: "Ценный фидбек",
+                karmaAvailable: "☯️ Доступно: {count}",
+                karmaNoRewards: "☯️ Наград нет",
+                // Showcase karma info
+                showcaseKarmaInfo: "☯️ Карма разработчика: {karma}\n\nЭтот показатель отражает, насколько разработчик ценит своих тестеров. Высокая Карма = активный и благодарный разработчик.",
                 // Report modal
                 reportModalTitle: "📸 Отправка отчёта",
                 reportModalHint: "Не забудьте прикрепить сам скриншот, когда откроется Telegram!",
@@ -1266,6 +1365,15 @@
                 rankPopupText: "🏆 Your Showcase position: #{rank} of {total}\n\nActive tests needed for each TOP position:\n\nTOP-1: {t1} tests\nTOP-2: {t2} tests\nTOP-3: {t3} tests\nTOP-4: {t4} tests\nTOP-5: {t5} tests\n\nYou currently have: {my} active tests",
                 // Karma chip info
                 karmaChipInfoText: "☯️ Tester Appreciation\n\nYou can optionally reward your tester by awarding Karma.\n\nYou have 2 rewards available:\n• 1st — available immediately after testing starts\n• 2nd — unlocks after day 7 of testing\n\nReward types:\n👍 Good tester: +1 ☯️\n💡 Valuable Feedback / Bug: +2 ☯️",
+                // Karma modal
+                karmaModalTitle: "☯️ Tester Reward",
+                karmaModalDesc: "Choose reward type",
+                karmaModalGood: "Good tester",
+                karmaModalBug: "Valuable feedback",
+                karmaAvailable: "☯️ Available: {count}",
+                karmaNoRewards: "☯️ No rewards",
+                // Showcase karma info
+                showcaseKarmaInfo: "☯️ Developer Karma: {karma}\n\nThis score reflects how much the developer values their testers. High Karma = active and grateful developer.",
                 // Report modal
                 reportModalTitle: "📸 Send Report",
                 reportModalHint: "Don't forget to attach the screenshot once Telegram opens!",
@@ -1321,6 +1429,11 @@
             document.getElementById('t-editPackage').innerText = t.editPackage;
             document.getElementById('t-editGroup').innerText = t.googleGroup;
             document.getElementById('t-editSave').innerText = t.save;
+            // Karma modal translations
+            document.getElementById('karma-modal-title').innerText = t.karmaModalTitle;
+            document.getElementById('karma-modal-desc').innerText = t.karmaModalDesc;
+            document.getElementById('karma-btn-good').innerText = t.karmaModalGood;
+            document.getElementById('karma-btn-bug').innerText = t.karmaModalBug;
             // Language switcher — preserve loading dot
             const switcher = document.getElementById('lang-switcher');
             const dot = document.getElementById('loading-dot');
@@ -1401,6 +1514,8 @@
         let projectToEdit = null;
         let visibilityStats = {};
         let _activeRequests = 0;
+        let _karmaAppId = null;
+        let _karmaTesterId = null;
 
         function _apiStart() {
             _activeRequests++;
@@ -1519,7 +1634,7 @@
             }
         }
 
-        async function loadEvents() {
+        async function loadEvents(retryCount = 0) {
             _apiStart();
             try {
                 const response = await fetch(`${API_BASE}/events`);
@@ -1529,8 +1644,14 @@
                 renderEvents();
             } catch (error) {
                 console.error('Error loading events:', error);
-                communityEvents = [];
-                renderEvents();
+                if (retryCount < 2) {
+                    // Retry with exponential backoff (2s, 4s)
+                    const delay = (retryCount + 1) * 2000;
+                    setTimeout(() => loadEvents(retryCount + 1), delay);
+                } else {
+                    communityEvents = [];
+                    renderEvents();
+                }
             } finally {
                 _apiEnd();
             }
@@ -1997,7 +2118,7 @@
                                 <div class="card-title">${app.name}</div>
                                 <div class="card-subtitle">${app.package_name}</div>
                             </div>
-                            ${app.owner_karma ? `<button class="meta-chip accent-yellow" style="margin-left: auto;" onclick="showKarmaBreakdown(${app.owner_id || 0}); event.stopPropagation();">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</button>` : ''}
+                            ${app.owner_karma ? `<button class="meta-chip accent-yellow" style="margin-left: auto;" onclick="showShowcaseKarmaInfo(${app.owner_karma}); event.stopPropagation();">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</button>` : ''}
                         </div>
                         <div style="margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
                             ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
@@ -2198,8 +2319,11 @@
                         badges += `<button class="meta-chip accent-blue" onclick="showRankPopup()">🏆 #${visibilityStats.rank}</button>`;
                     }
                     
-                    // ☯️ Likes used/max
-                    badges += `<button class="meta-chip accent-yellow" onclick="showKarmaChipInfo()">☯️ ${project.likes_used}/${project.likes_max}</button>`;
+                    // ☯️ Karma available/none
+                    const karmaChipText = likesAvailable > 0
+                        ? t.karmaAvailable.replace('{count}', likesAvailable)
+                        : t.karmaNoRewards;
+                    badges += `<button class="meta-chip ${likesAvailable > 0 ? 'accent-yellow' : 'accent-red'}" onclick="showKarmaChipInfo()">${karmaChipText}</button>`;
 
                     // ⚠️ Old app warning chip
                     if (isOldApp) {
@@ -2272,8 +2396,7 @@
             
             // Таймер идёт для другого приложения
             if (activeTimerAppId !== null && activeTimerAppId !== id) {
-                if (tg.showAlert) tg.showAlert(t.antiFraudAlert);
-                else alert(t.antiFraudAlert);
+                showCustomAlert(t.antiFraudAlert);
                 return;
             }
 
@@ -2496,6 +2619,13 @@
             else alert(t.karmaChipInfoText);
         }
 
+        function showShowcaseKarmaInfo(karma) {
+            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            const msg = t.showcaseKarmaInfo.replace('{karma}', karma);
+            if (tg.showAlert) tg.showAlert(msg);
+            else alert(msg);
+        }
+
         function showTestDayPopup(day) {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             const msg = t.testDayExplain.replace('{days}', day);
@@ -2548,22 +2678,38 @@
 
         function showKarmaPopup(appId, testerId) {
             if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            if (tg.showPopup) {
-                tg.showPopup({
-                    title: t.karmaPopupTitle,
-                    message: t.karmaPopupMessage,
-                    buttons: [
-                        { id: 'good', type: 'default', text: t.karmaRewardGood },
-                        { id: 'bug', type: 'default', text: t.karmaRewardBug },
-                        { id: 'cancel', type: 'cancel' }
-                    ]
-                }, (btnId) => {
-                    if (btnId && btnId !== 'cancel') sendKarmaReward(appId, testerId, btnId);
-                });
-            } else {
-                // Fallback: just send 'good'
-                sendKarmaReward(appId, testerId, 'good');
+            _karmaAppId = appId;
+            _karmaTesterId = testerId;
+            document.getElementById('karma-modal').classList.add('active');
+        }
+
+        function closeKarmaModal(e) {
+            if (e && e.target && e.target.id !== 'karma-modal') return;
+            document.getElementById('karma-modal').classList.remove('active');
+            _karmaAppId = null;
+            _karmaTesterId = null;
+        }
+
+        function selectKarmaReward(type) {
+            if (_karmaAppId === null || _karmaTesterId === null) return;
+            document.getElementById('karma-modal').classList.remove('active');
+            sendKarmaReward(_karmaAppId, _karmaTesterId, type);
+            _karmaAppId = null;
+            _karmaTesterId = null;
+        }
+
+        function showCustomAlert(text) {
+            const overlay = document.getElementById('custom-alert-overlay');
+            document.getElementById('custom-alert-text').innerText = text;
+            overlay.classList.add('active');
+        }
+
+        function closeCustomAlert(e) {
+            if (e && e.target && e.target.id !== 'custom-alert-overlay') {
+                // click was on the box itself, do nothing
+                return;
             }
+            document.getElementById('custom-alert-overlay').classList.remove('active');
         }
 
         function showToast(message) {
