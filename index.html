@@ -684,9 +684,12 @@
 
         /* Community Pulse */
         .pulse-card {
-            background: rgba(142, 142, 147, 0.08);
+            background: linear-gradient(135deg, rgba(51, 144, 236, 0.12) 0%, rgba(142, 142, 147, 0.12) 100%);
+            border: 1px solid rgba(51, 144, 236, 0.28);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
             border-radius: 16px;
             padding: 12px;
+            margin-top: 12px;
             margin-bottom: 16px;
         }
         .pulse-title {
@@ -708,17 +711,20 @@
         .events-list::-webkit-scrollbar { display: none; }
         .event-item {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            align-items: flex-start;
+            gap: 8px;
         }
         .event-text {
             font-size: 13px;
             color: var(--text-color);
             line-height: 1.35;
+            flex: 1;
         }
         .event-time {
             font-size: 12px;
             color: var(--hint-color);
+            white-space: nowrap;
+            margin-top: 1px;
         }
         .events-toggle {
             margin-top: 10px;
@@ -1775,8 +1781,8 @@
                 const text = lang === 'ru' ? event.text_ru : event.text_en;
                 return `
                     <div class="event-item">
-                        <div class="event-text">${text}</div>
                         <div class="event-time">${formatTimeAgo(event.created_at)}</div>
+                        <div class="event-text">${text}</div>
                     </div>
                 `;
             }).join('');
