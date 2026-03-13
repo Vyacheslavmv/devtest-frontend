@@ -69,12 +69,14 @@
         .card-header {
             display: flex;
             align-items: center;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(142, 142, 147, 0.08);
             margin-bottom: 12px;
         }
         .card.card-inactive .card-header {
-            background: rgba(142, 142, 147, 0.12);
-            border-radius: 12px;
-            padding: 10px;
+            opacity: 0.5;
+            filter: grayscale(100%);
         }
         .project-header-actions {
             margin-left: auto;
@@ -1109,7 +1111,7 @@
         </div>
 
         <details id="available-details" style="margin-top: 16px;">
-            <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle" class="available-title">📱 Биржа проектов (0)</span><span class="details-arrow">▼</span></summary>
+            <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle" class="available-title">📱 Биржа проектов</span><span class="details-arrow">▼</span></summary>
             <div style="margin-top: 8px;">
                 <div class="showcase-tabs" id="showcase-tabs">
                         <button class="showcase-tab active" data-tab="needed" id="needed-tab-btn" onclick="switchShowcaseTab('needed')">
@@ -1800,8 +1802,7 @@
             document.getElementById('t-save').innerText = t.save;
             document.getElementById('t-bannerText').innerText = t.bannerText;
             document.getElementById('t-disclaimerText').innerText = t.disclaimerText;
-            const exchangeTotal = (showcaseTestersNeeded?.length || 0) + (showcasePreLaunch?.length || 0);
-            document.getElementById('t-availableTitle').innerText = `${t.availableTitle} (${exchangeTotal})`;
+            document.getElementById('t-availableTitle').innerText = t.availableTitle;
             document.getElementById('t-deleteModalTitle').innerText = t.deleteModalTitle;
             document.getElementById('t-deleteMessageLabel').innerText = t.deleteMessageLabel;
             document.getElementById('t-cancelDelete').innerText = t.cancelDelete;
@@ -1972,6 +1973,7 @@
 
         // --- API Calls ---
         let availableAppsLoaded = false;
+        let showcaseLoadError = false;
 
         async function loadTasks() {
             showSkeleton('tests-list');
@@ -2020,10 +2022,22 @@
 
                 showcaseTestersNeeded = data.testers_needed || [];
                 showcasePreLaunch = data.pre_launch || [];
+                showcaseLoadError = false;
                 availableAppsLoaded = false;
             } catch (error) {
                 console.error("Error loading tasks:", error);
                 showRetry('tests-list', 'loadTasks()');
+                showcaseLoadError = true;
+                const neededPanel = document.getElementById('showcase-needed');
+                const prelaunchPanel = document.getElementById('showcase-prelaunch');
+                if (neededPanel) {
+                    neededPanel.innerHTML = `
+                        <div class="retry-container" style="padding: 20px 8px;">
+                            <button class="retry-btn" onclick="loadTasks(); if (this.closest('details')) this.closest('details').open = true;">${t.retryBtn}</button>
+                        </div>
+                    `;
+                }
+                if (prelaunchPanel) prelaunchPanel.innerHTML = '';
             } finally {
                 _apiEnd();
             }
@@ -2503,7 +2517,19 @@
                 prelaunchBtn.innerHTML = `${t.tabPreLaunch} (<span id="prelaunch-count">${showcasePreLaunch.length}</span>)`;
             }
             if (availableTitle) {
-                availableTitle.innerText = `${t.availableTitle} (${showcaseTestersNeeded.length + showcasePreLaunch.length})`;
+                availableTitle.innerText = t.availableTitle;
+            }
+
+            if (showcaseLoadError) {
+                neededPanel.innerHTML = `
+                    <div class="retry-container" style="padding: 20px 8px;">
+                        <button class="retry-btn" onclick="loadTasks();">${t.retryBtn}</button>
+                    </div>
+                `;
+                prelaunchPanel.innerHTML = '';
+                prelaunchBtn.style.display = 'none';
+                prelaunchPanel.style.display = 'none';
+                return;
             }
 
             if (showcasePreLaunch.length > 0) {
@@ -2804,20 +2830,41 @@
                 
                 const visibilityBadge = (() => {
                     let badges = '';
-                    
-                    // 🆕 badge for new apps
-                    if (project.is_app_new) {
-                        let newLabel = t.newBadge;
-                        if (project.created_at) {
-                            const exp = new Date(new Date(project.created_at).getTime() + 72 * 60 * 60 * 1000);
-                            const dd = String(exp.getDate()).padStart(2, '0');
-                            const mm = String(exp.getMonth() + 1).padStart(2, '0');
-                            const hh = String(exp.getHours()).padStart(2, '0');
-                            const mi = String(exp.getMinutes()).padStart(2, '0');
-                            newLabel = t.newBadgeUntil.replace('{date}', `${dd}.${mm} ${hh}:${mi}`);
+
+                    const statusChip = (() => {
+                        const s = project.system_status;
+                        if (s === 'hidden_manual') {
+                            return `<button class="meta-chip" style="background: rgba(142,142,147,0.15);" onclick="showToast('Приложение скрыто. Ваша инвайт-ссылка продолжает работать.')">🚫 Скрыто (вручную)</button>`;
                         }
-                        badges += `<button class="meta-chip accent-green" onclick="showNewBadgeToast()">${newLabel}</button>`;
-                    }
+                        if (s === 'visible_new') {
+                            let untilText = '';
+                            if (project.created_at) {
+                                const exp = new Date(new Date(project.created_at).getTime() + 72 * 60 * 60 * 1000);
+                                const dd = String(exp.getDate()).padStart(2, '0');
+                                const mm = String(exp.getMonth() + 1).padStart(2, '0');
+                                const hh = String(exp.getHours()).padStart(2, '0');
+                                const mi = String(exp.getMinutes()).padStart(2, '0');
+                                untilText = `${dd}.${mm} ${hh}:${mi}`;
+                            } else {
+                                const exp = new Date(Date.now() + 72 * 60 * 60 * 1000);
+                                const dd = String(exp.getDate()).padStart(2, '0');
+                                const mm = String(exp.getMonth() + 1).padStart(2, '0');
+                                const hh = String(exp.getHours()).padStart(2, '0');
+                                const mi = String(exp.getMinutes()).padStart(2, '0');
+                                untilText = `${dd}.${mm} ${hh}:${mi}`;
+                            }
+                            return `<button class="meta-chip accent-green" onclick="showToast('${t.newBadgeToast.replace(/'/g, "\\'")}')">🟢 На бирже (до ${untilText})</button>`;
+                        }
+                        if (s === 'visible_quota') {
+                            return `<button class="meta-chip accent-green" onclick="showToast('Если вам больше не нужны тестеры для обмена, вы можете скрыть приложение с биржи, нажав на 👁️ в шапке.')">🟢 На бирже</button>`;
+                        }
+                        if (s === 'hidden_quota') {
+                            const shortage = project.tests_shortage || 1;
+                            return `<button class="meta-chip accent-orange" onclick="showToast('Возьмите на тест еще ${shortage} проекта, чтобы вернуть видимость на бирже.')">🟡 Нужно тестов: ${shortage}</button>`;
+                        }
+                        return '';
+                    })();
+                    if (statusChip) badges += statusChip;
                     
                     // 🏆 Rank
                     if (visibilityStats.rank) {
@@ -2877,14 +2924,6 @@
                     <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                         ${visibilityBadge}
                     </div>
-                    <div style="margin-bottom: 6px;">${(() => {
-                        const s = project.system_status;
-                        if (s === 'hidden_manual') return '<button class="meta-chip" style="background: rgba(142,142,147,0.2);">🚫 Скрыто вами</button>';
-                        if (s === 'visible_new') return '<button class="meta-chip accent-green">🟢 На бирже (Новинка)</button>';
-                        if (s === 'visible_quota') return '<button class="meta-chip accent-green">🟢 На бирже</button>';
-                        if (s === 'hidden_quota') return '<button class="meta-chip accent-orange">🟡 Нужно тестов: ' + (project.tests_shortage || 1) + '</button>';
-                        return '';
-                    })()}</div>
                     ${(project.system_status === 'hidden_manual' || project.system_status === 'hidden_quota') ? `<div class="visibility-hint">${t.inviteLinkAlways}</div>` : ''}
                     ${project.days_left !== null && project.days_left !== undefined && project.days_left <= 3 ? `
                     <div class="expire-warning">
