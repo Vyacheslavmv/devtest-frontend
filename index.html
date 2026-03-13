@@ -798,6 +798,232 @@
             font-weight: 600;
             cursor: pointer;
         }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(142,142,147,0.3);
+            border-radius: 24px;
+            transition: background 0.3s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 2px;
+            bottom: 2px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--success-color);
+        }
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+        .visibility-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .visibility-hint {
+            font-size: 12px;
+            color: var(--hint-color);
+            line-height: 1.3;
+            margin-bottom: 10px;
+            padding-left: 54px;
+        }
+
+        /* Expire Warning */
+        .expire-warning {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,149,0,0.12);
+            border: 1px solid rgba(255,149,0,0.25);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #ff9500;
+            font-weight: 600;
+        }
+        .expire-warning .btn {
+            padding: 6px 14px;
+            font-size: 13px;
+            white-space: nowrap;
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        /* Showcase Tabs */
+        .showcase-tabs {
+            display: flex;
+            gap: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(142,142,147,0.25);
+            margin-bottom: 12px;
+        }
+        .showcase-tab {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--secondary-bg-color);
+            color: var(--hint-color);
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .showcase-tab.active {
+            background: var(--button-color);
+            color: var(--button-text-color);
+        }
+
+        /* Scroll Snap Showcase */
+        .showcase-snap-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .showcase-snap-container::-webkit-scrollbar { display: none; }
+        .showcase-snap-panel {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+            min-height: 80px;
+        }
+
+        /* Compact Showcase Card */
+        .compact-card {
+            background: var(--secondary-bg-color);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .compact-card-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .compact-card-clickable {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            min-width: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .compact-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .compact-card-name {
+            font-size: 15px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-color);
+        }
+        .compact-card-owner {
+            font-size: 13px;
+            color: var(--link-color);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .compact-card-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .compact-card-badges .meta-chip {
+            padding: 3px 8px;
+            font-size: 11px;
+            border-radius: 10px;
+            cursor: default;
+        }
+        .compact-card .avatar {
+            margin-right: 0;
+        }
+        .compact-test-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            background: var(--button-color);
+            color: var(--button-text-color);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: opacity 0.15s;
+        }
+        .compact-test-btn:active { opacity: 0.7; }
+
+        /* Compact Instruction Accordion */
+        .compact-instruction {
+            margin-top: 8px;
+        }
+        .compact-instruction summary {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 0;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            list-style: none;
+            color: var(--hint-color);
+        }
+        .compact-instruction summary::-webkit-details-marker { display: none; }
+        .compact-instruction-arrow {
+            font-size: 10px;
+            transition: transform 0.3s ease;
+            color: var(--hint-color);
+        }
+        .compact-instruction[open] .compact-instruction-arrow {
+            transform: rotate(90deg);
+        }
+        .compact-instruction-body {
+            padding: 4px 0 4px 18px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--hint-color);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Contact modal textarea */
+        #contact-text {
+            resize: none;
+        }
     </style>
 </head>
 <body>
@@ -839,8 +1065,21 @@
 
         <details id="available-details" style="margin-top: 16px;">
             <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle" class="available-title">🛒 Взять другие проекты на тест</span><span class="details-arrow">▼</span></summary>
-            <div id="available-list" style="margin-top: 8px;">
-                <p style="text-align: center; color: var(--hint-color); margin-top: 8px;">Загрузка витрины...</p>
+            <div style="margin-top: 8px;">
+                <div class="showcase-tabs" id="showcase-tabs">
+                    <button class="showcase-tab active" data-tab="needed" onclick="switchShowcaseTab('needed')">
+                        🔥 Testers Needed (<span id="needed-count">0</span>)
+                    </button>
+                    <button class="showcase-tab" data-tab="prelaunch" id="prelaunch-tab-btn" onclick="switchShowcaseTab('prelaunch')" style="display:none;">
+                        🚀 Pre-Launch (<span id="prelaunch-count">0</span>)
+                    </button>
+                </div>
+                <div class="showcase-snap-container" id="showcase-snap">
+                    <div class="showcase-snap-panel" id="showcase-needed">
+                        <p style="text-align: center; color: var(--hint-color); margin-top: 8px;" id="t-loadingShowcase">Загрузка витрины...</p>
+                    </div>
+                    <div class="showcase-snap-panel" id="showcase-prelaunch" style="display:none;"></div>
+                </div>
             </div>
         </details>
     </div>
@@ -1027,6 +1266,35 @@
         </div>
     </div>
 
+    <!-- Contact Developer Modal -->
+    <div id="contact-modal" class="modal-overlay" onclick="closeContactModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="t-contactTitle">Связаться с разработчиком</h3>
+            <div class="form-group">
+                <textarea id="contact-text" class="form-input" rows="4"></textarea>
+            </div>
+            <div class="chip-scroll" style="margin-bottom: 12px;">
+                <button class="chip" id="contact-chip-mutual" onclick="resetContactText()">🔄 Предложить взаимку</button>
+                <button class="chip" id="contact-chip-attach" onclick="toggleAttachProject()">🔗 Прикрепить мой проект</button>
+            </div>
+            <div id="attach-project-container" style="display: none; margin-bottom: 12px;">
+                <select id="attach-project-select" class="form-input" onchange="onProjectSelected()">
+                    <option value="">-- Выберите проект --</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" id="t-contactSendBtn" onclick="sendContactMessage()">Отправить (Telegram)</button>
+        </div>
+    </div>
+
+    <!-- Extend Project Modal -->
+    <div id="extend-modal" class="modal-overlay" onclick="closeExtendModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="t-extendTitle">Продлить тестирование</h3>
+            <p id="extend-modal-text" style="color: var(--text-color); font-size: 14px; line-height: 1.5; white-space: pre-line; margin-bottom: 16px;"></p>
+            <div id="extend-modal-action"></div>
+        </div>
+    </div>
+
     <script>
         // Initialize Telegram Web App
         const tg = window.Telegram.WebApp;
@@ -1071,7 +1339,7 @@
                 copied: "Скопировано!",
                 joinGroup: "👥 1. Вступить в Google Group",
                 downloadPlay: "⬇️ 2. Скачать в Google Play",
-                iconUrl: "Ссылка на иконку",
+                iconUrl: "Ссылка на иконку (URL можно взять из Google Play)",
                 save: "Сохранить",
                 emptyTests: "Inbox Zero!",
                 emptyTestsDesc: "Вы открыли все приложения на сегодня. Возвращайтесь завтра!",
@@ -1179,9 +1447,9 @@
                 pulseExpand: "Развернуть ▼",
                 pulseCollapse: "Свернуть ▲",
                 timeJustNow: "только что",
-                timeMinAgo: "{count} мин. назад",
-                timeHourAgo: "{count} ч. назад",
-                timeDayAgo: "{count} дн. назад",
+                timeMinAgo: "{count} мин.",
+                timeHourAgo: "{count} ч.",
+                timeDayAgo: "{count} дн.",
                 // Visibility system
                 visibilityPublic: "🟢 Видно на Витрине",
                 visibilityPrivate: "🔴 Скрыто из Витрины",
@@ -1224,7 +1492,34 @@
                 reportBtnSend: "💬 Открыть чат",
                 reportChipBug: "🐛 Нашёл баг:",
                 reportChipIdea: "💡 Есть идея:",
-                reportChipGood: "✅ Работает отлично"
+                reportChipGood: "✅ Работает отлично",
+                // Showcase tabs
+                tabTestersNeeded: "🔥 Testers Needed",
+                tabPreLaunch: "🚀 Pre-Launch",
+                // Visibility toggle
+                visibleOnShowcase: "👁️ Видим на витрине",
+                inviteLinkAlways: "💡 Ваша инвайт-ссылка работает всегда, даже если приложение скрыто с Витрины.",
+                // Contact modal
+                contactTitle: "Связаться с разработчиком",
+                contactPrefill: "Привет! 👋 Нашел твой проект на витрине DevTest Hub. Беру ваш проект на взаимное тестирование.",
+                contactChipMutual: "🔄 Предложить взаимку",
+                contactChipAttach: "🔗 Прикрепить мой проект",
+                contactSendBtn: "Отправить (Telegram)",
+                contactSelectProject: "Выберите ваш проект",
+                // Extend modal
+                extendTitle: "Продлить тестирование",
+                extendText: "Ваше приложение автоматически удалится через {days_left} дн. Если тестирование еще не завершено, вы можете продлить его на 7 дней.\n\nИспользовано продлений: {ext_count} из 3",
+                extendBtn: "Продлить на 7 дней",
+                extendLimitReached: "Лимит продлений исчерпан",
+                projectExpiring: "⚠️ Проект будет удален через {days_left} дн.",
+                extendBtnShort: "Продлить",
+                // Compact card
+                instructionAccordion: "📝 Инструкция",
+                testBtnShort: "Тест",
+                statusHiddenManual: "🔴 Скрыто вручную",
+                statusVisibleNew: "🟢 Видно (Новинка)",
+                statusVisibleQuota: "🟢 Видно на витрине",
+                statusHiddenQuota: "🟡 Скрыто (Нужно 3 активных теста)",
             },
             en: {
                 tabTests: "My Tests",
@@ -1252,7 +1547,7 @@
                 copied: "Copied!",
                 joinGroup: "👥 1. Join Google Group",
                 downloadPlay: "⬇️ 2. Download on Google Play",
-                iconUrl: "Icon URL",
+                iconUrl: "Icon URL (you can use URL from Google Play)",
                 save: "Save",
                 emptyTests: "Inbox Zero!",
                 emptyTestsDesc: "You've checked all apps for today. Come back tomorrow!",
@@ -1360,9 +1655,9 @@
                 pulseExpand: "Expand ▼",
                 pulseCollapse: "Collapse ▲",
                 timeJustNow: "just now",
-                timeMinAgo: "{count} min ago",
-                timeHourAgo: "{count} h ago",
-                timeDayAgo: "{count} d ago",
+                timeMinAgo: "{count} min",
+                timeHourAgo: "{count} h",
+                timeDayAgo: "{count} d",
                 // Visibility system
                 visibilityPublic: "🟢 Visible on Showcase",
                 visibilityPrivate: "🔴 Hidden from Showcase",
@@ -1405,7 +1700,34 @@
                 reportBtnSend: "💬 Open Chat",
                 reportChipBug: "🐛 Found a bug:",
                 reportChipIdea: "💡 Got an idea:",
-                reportChipGood: "✅ Works great"
+                reportChipGood: "✅ Works great",
+                // Showcase tabs
+                tabTestersNeeded: "🔥 Testers Needed",
+                tabPreLaunch: "🚀 Pre-Launch",
+                // Visibility toggle
+                visibleOnShowcase: "👁️ Visible on showcase",
+                inviteLinkAlways: "💡 Your invite link always works, even if the app is hidden from the Showcase.",
+                // Contact modal
+                contactTitle: "Contact developer",
+                contactPrefill: "Hi! 👋 Found your project on DevTest Hub showcase. Taking your project for mutual testing.",
+                contactChipMutual: "🔄 Offer mutual test",
+                contactChipAttach: "🔗 Attach my project",
+                contactSendBtn: "Send (Telegram)",
+                contactSelectProject: "Select your project",
+                // Extend modal
+                extendTitle: "Extend testing",
+                extendText: "Your app will be automatically deleted in {days_left} days. If testing is not yet complete, you can extend it by 7 days.\n\nExtensions used: {ext_count} of 3",
+                extendBtn: "Extend by 7 days",
+                extendLimitReached: "Extension limit reached",
+                projectExpiring: "⚠️ Project will be deleted in {days_left} days",
+                extendBtnShort: "Extend",
+                // Compact card
+                instructionAccordion: "📝 Instructions",
+                testBtnShort: "Test",
+                statusHiddenManual: "🔴 Hidden manually",
+                statusVisibleNew: "🟢 Visible (New app)",
+                statusVisibleQuota: "🟢 Visible on showcase",
+                statusHiddenQuota: "🟡 Hidden (Need 3 active tests)",
             }
         };
 
@@ -1476,6 +1798,12 @@
             if (toggleBtn) {
                 toggleBtn.innerText = eventsExpanded ? t.pulseCollapse : t.pulseExpand;
             }
+            // Contact & Extend modals
+            document.getElementById('t-contactTitle').innerText = t.contactTitle;
+            document.getElementById('t-contactSendBtn').innerText = t.contactSendBtn;
+            document.getElementById('contact-chip-mutual').innerText = t.contactChipMutual;
+            document.getElementById('contact-chip-attach').innerText = t.contactChipAttach;
+            document.getElementById('t-extendTitle').innerText = t.extendTitle;
         }
 
         function applyLanguage(newLang) {
@@ -1493,7 +1821,7 @@
             renderEvents();
             renderTests();
             renderProjects();
-            if (availableAppsLoaded) renderAvailableApps();
+            if (availableAppsLoaded) renderShowcase();
         }
 
         function toggleLanguage() {
@@ -1530,7 +1858,8 @@
         // --- State ---
         let myTests = [];
         let myProjects = [];
-        let availableApps = [];
+        let showcaseTestersNeeded = [];
+        let showcasePreLaunch = [];
         let communityEvents = null;
         let eventsExpanded = false;
         let activeTimerAppId = null;
@@ -1643,13 +1972,9 @@
                 // Render my tests immediately
                 renderTests();
 
-                // Store available apps for lazy rendering
-                availableApps = data.available_apps || [];
+                showcaseTestersNeeded = data.testers_needed || [];
+                showcasePreLaunch = data.pre_launch || [];
                 availableAppsLoaded = false;
-                const availableList = document.getElementById('available-list');
-                if (availableList) {
-                    availableList.innerHTML = `<p style="text-align: center; color: var(--hint-color); margin-top: 8px;">${t.loadingShowcase}</p>`;
-                }
             } catch (error) {
                 console.error("Error loading tasks:", error);
                 showRetry('tests-list', 'loadTasks()');
@@ -1688,7 +2013,7 @@
                 details.addEventListener('toggle', () => {
                     if (details.open && !availableAppsLoaded) {
                         availableAppsLoaded = true;
-                        renderAvailableApps();
+                        renderShowcase();
                     }
                 });
             }
@@ -1713,13 +2038,15 @@
                     google_group_url: project.google_group_url,
                     instructions: project.instructions || '',
                     testers: project.testers || [],
-                    is_visible: project.is_visible || false,
+                    is_visible: project.is_visible !== false,
                     is_app_new: project.is_app_new || false,
                     created_at: project.created_at || null,
                     likes: project.likes || [],
-                    visibility_quota: project.visibility_quota || 0,
                     likes_used: project.likes_used || 0,
                     likes_max: project.likes_max || 1,
+                    extensions_count: project.extensions_count || 0,
+                    days_left: project.days_left,
+                    system_status: project.system_status || 'hidden_manual',
                 }));
                 
                 visibilityStats = {
@@ -2106,62 +2433,112 @@
             document.getElementById('done-section').style.display = doneCount > 0 ? 'block' : 'none';
         }
 
-        function renderAvailableApps() {
-            // Render Available Apps
-            const availableList = document.getElementById('available-list');
-            availableList.innerHTML = '';
-            
-            if (availableApps.length === 0) {
-                availableList.innerHTML = `<p class="no-testers" id="t-noAvailable" style="text-align: center; margin-top: 16px;">${t.noAvailable}</p>`;
-            } else {
-                availableApps.forEach(app => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    
-                    const ownerUsername = app.owner_username || '';
-                    
-                    let devInfoHtml = '';
-                    if (app.instructions) {
-                        devInfoHtml = `
-                            <details class="dev-instruction">
-                                <summary>${t.devInfo} <span class="details-arrow">▼</span></summary>
-                                <div class="dev-instruction-body">${app.instructions}</div>
-                            </details>
-                        `;
-                    }
+        function renderShowcase() {
+            const neededPanel = document.getElementById('showcase-needed');
+            const prelaunchPanel = document.getElementById('showcase-prelaunch');
+            const neededCount = document.getElementById('needed-count');
+            const prelaunchCount = document.getElementById('prelaunch-count');
+            const prelaunchBtn = document.getElementById('prelaunch-tab-btn');
+            if (!neededPanel || !prelaunchPanel) return;
 
-                    // Accent warning chip for 14+ day apps
-                    const oldChipHtml = (app.days_since_publish && app.days_since_publish >= 14) 
-                        ? `<button class="meta-chip accent-orange" onclick="showToast('${t.warningOldApp.replace(/'/g, "\\'")}'); event.stopPropagation();">${t.warningOldChip}</button>` 
-                        : '';
-                    
-                    card.innerHTML = `
-                        <div class="card-header">
-                            ${renderIcon(app.name, app.icon_url)}
-                            <div class="card-info">
-                                <div class="card-title">${app.name}</div>
-                                <div class="card-subtitle">${app.package_name}</div>
-                            </div>
-                            ${app.owner_karma ? `<button class="meta-chip accent-yellow" style="margin-left: auto;" onclick="showShowcaseKarmaInfo(${app.owner_karma}); event.stopPropagation();">${t.karmaShowcase.replace('{karma}', app.owner_karma)}</button>` : ''}
-                        </div>
-                        <div style="margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                            ${renderCompactMeta(app.days_since_publish, app.active_testers_count, app.is_new)}
-                            ${oldChipHtml}
-                        </div>
-                        ${devInfoHtml}
-                        <div class="action-row">
-                            <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="return openTelegramProfile('${ownerUsername}', event)">
-                                💬 ${t.contactOwner}
-                            </button>
-                            <button class="btn btn-primary" style="flex: 1;" onclick="takeAppToTest(${app.app_id})">
-                                ${t.takeToTest}
-                            </button>
-                        </div>
-                    `;
-                    availableList.appendChild(card);
+            neededCount.textContent = showcaseTestersNeeded.length;
+            prelaunchCount.textContent = showcasePreLaunch.length;
+
+            if (showcasePreLaunch.length > 0) {
+                prelaunchBtn.style.display = '';
+                prelaunchPanel.style.display = '';
+            } else {
+                prelaunchBtn.style.display = 'none';
+                prelaunchPanel.style.display = 'none';
+            }
+
+            neededPanel.innerHTML = '';
+            if (showcaseTestersNeeded.length === 0) {
+                neededPanel.innerHTML = `<p class="no-testers" style="text-align: center; margin-top: 16px;">${t.noAvailable}</p>`;
+            } else {
+                showcaseTestersNeeded.forEach(app => {
+                    neededPanel.innerHTML += renderCompactCard(app);
+                });
+            }
+
+            prelaunchPanel.innerHTML = '';
+            if (showcasePreLaunch.length > 0) {
+                showcasePreLaunch.forEach(app => {
+                    prelaunchPanel.innerHTML += renderCompactCard(app);
                 });
             }
         }
+
+        function renderCompactCard(app) {
+            const ownerDisplay = app.owner_full_name || (app.owner_username ? '@' + app.owner_username : '???');
+            const ownerUsername = app.owner_username || '';
+
+            let badges = '';
+            if (app.owner_karma) {
+                badges += '<span class="meta-chip accent-yellow" style="cursor:default;">☯️ ' + app.owner_karma + '</span>';
+            }
+            badges += '<span class="meta-chip accent-blue" style="cursor:default;">👥 ' + (app.active_testers_count || 0) + '</span>';
+            if (app.is_new) {
+                badges += '<span class="meta-chip accent-green" style="cursor:default;">🆕</span>';
+            } else if (app.days_since_publish) {
+                badges += '<span class="meta-chip" style="cursor:default;">📅 ' + app.days_since_publish + 'д</span>';
+            }
+
+            let instructionHtml = '';
+            if (app.instructions) {
+                instructionHtml = `
+                    <details class="compact-instruction" onclick="event.stopPropagation();">
+                        <summary>
+                            <span class="compact-instruction-arrow">▶</span>
+                            ${t.instructionAccordion}
+                        </summary>
+                        <div class="compact-instruction-body">${app.instructions}</div>
+                    </details>
+                `;
+            }
+
+            return `
+                <div class="compact-card">
+                    <div class="compact-card-main">
+                        <div class="compact-card-clickable" onclick="openContactModal('${ownerUsername}')">
+                            ${renderIcon(app.name, app.icon_url)}
+                            <div class="compact-card-info">
+                                <div class="compact-card-name">${app.name}</div>
+                                <div class="compact-card-owner">${ownerDisplay} 💬</div>
+                                <div class="compact-card-badges">${badges}</div>
+                            </div>
+                        </div>
+                        <button class="compact-test-btn" onclick="takeAppToTest(${app.app_id})">${t.testBtnShort}</button>
+                    </div>
+                    ${instructionHtml}
+                </div>
+            `;
+        }
+
+        function switchShowcaseTab(tab) {
+            document.querySelectorAll('.showcase-tab').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+            const snap = document.getElementById('showcase-snap');
+            const target = document.getElementById(tab === 'prelaunch' ? 'showcase-prelaunch' : 'showcase-needed');
+            if (snap && target) snap.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+        }
+
+        // Sync showcase tabs with scroll snap
+        document.addEventListener('DOMContentLoaded', () => {
+            const snap = document.getElementById('showcase-snap');
+            if (snap) {
+                let scrollTimer;
+                snap.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimer);
+                    scrollTimer = setTimeout(() => {
+                        const half = snap.scrollWidth / 2;
+                        const activeTab = snap.scrollLeft >= half ? 'prelaunch' : 'needed';
+                        document.querySelectorAll('.showcase-tab').forEach(el =>
+                            el.classList.toggle('active', el.dataset.tab === activeTab)
+                        );
+                    }, 100);
+                });
+            }
+        });
 
 
         function renderProjects() {
@@ -2188,7 +2565,7 @@
 
             // Developer Dashboard block
             if (visibilityStats) {
-                const vc = myProjects.filter(p => p.is_visible || p.is_app_new).length;
+                const vc = myProjects.filter(p => p.system_status === 'visible_new' || p.system_status === 'visible_quota').length;
                 const tc = myProjects.length;
                 let visibleLine = '';
                 if (tc === 0) visibleLine = '';
@@ -2316,9 +2693,6 @@
                 }
                 
                 const visibilityBadge = (() => {
-                    const vq = project.visibility_quota;
-                    const quotaColor = vq >= 3 ? '#34c759' : vq > 0 ? '#ff9500' : '#ff3b30';
-                    const quotaClass = vq >= 3 ? 'accent-green' : vq > 0 ? 'accent-orange' : 'accent-red';
                     let badges = '';
                     
                     // 🆕 badge for new apps
@@ -2335,11 +2709,8 @@
                         badges += `<button class="meta-chip accent-green" onclick="showNewBadgeToast()">${newLabel}</button>`;
                     }
                     
-                    // 👁 Visibility quota
-                    badges += `<button class="meta-chip ${quotaClass}" onclick="showVisibilityToast()">👁 ${vq}/3</button>`;
-                    
-                    // 🏆 Rank (only when 3/3)
-                    if (vq >= 3 && visibilityStats.rank) {
+                    // 🏆 Rank
+                    if (visibilityStats.rank) {
                         badges += `<button class="meta-chip accent-blue" onclick="showRankPopup()">🏆 #${visibilityStats.rank}</button>`;
                     }
                     
@@ -2391,6 +2762,27 @@
                     <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                         ${visibilityBadge}
                     </div>
+                    <div class="visibility-toggle-row">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${project.is_visible ? 'checked' : ''} onchange="toggleVisibility(${project.id}, this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span style="font-size: 13px; font-weight: 500;">${t.visibleOnShowcase}</span>
+                    </div>
+                    <div style="padding-left: 54px; margin-bottom: 4px;">${(() => {
+                        const s = project.system_status;
+                        if (s === 'hidden_manual') return '<span style="color: #ff3b30; font-size: 13px; font-weight: 500;">' + t.statusHiddenManual + '</span>';
+                        if (s === 'visible_new') return '<span style="color: #34c759; font-size: 13px; font-weight: 500;">' + t.statusVisibleNew + '</span>';
+                        if (s === 'visible_quota') return '<span style="color: #34c759; font-size: 13px; font-weight: 500;">' + t.statusVisibleQuota + '</span>';
+                        if (s === 'hidden_quota') return '<span style="color: #ff9500; font-size: 13px; font-weight: 500;">' + t.statusHiddenQuota + '</span>';
+                        return '';
+                    })()}</div>
+                    <div class="visibility-hint">${t.inviteLinkAlways}</div>
+                    ${project.days_left !== null && project.days_left !== undefined && project.days_left <= 3 ? `
+                    <div class="expire-warning">
+                        <span>${t.projectExpiring.replace('{days_left}', Math.max(0, project.days_left))}</span>
+                        <button class="btn" style="padding: 6px 16px; font-size: 13px; background: rgba(255,149,0,0.2); color: #ff9500; border: none; border-radius: 8px; font-weight: 600; white-space: nowrap;" onclick="openExtendModal(${project.id})">${t.extendBtnShort}</button>
+                    </div>` : ''}
                     ${appProgressHtml}
                     ${oldAppWarningHtml}
                     <div class="testers-section">
@@ -2576,6 +2968,128 @@
             }
             _reportAppId = null;
             _reportOwnerUsername = null;
+        }
+
+        // --- Contact Developer Modal ---
+        let _contactOwnerUsername = '';
+
+        function openContactModal(ownerUsername) {
+            _contactOwnerUsername = ownerUsername;
+            const textarea = document.getElementById('contact-text');
+            textarea.value = t.contactPrefill;
+            document.getElementById('attach-project-container').style.display = 'none';
+            const sel = document.getElementById('attach-project-select');
+            sel.innerHTML = '<option value="">' + t.contactSelectProject + '</option>';
+            myProjects.forEach(p => {
+                sel.innerHTML += '<option value="' + p.id + '">' + p.name + '</option>';
+            });
+            document.getElementById('contact-modal').classList.add('active');
+        }
+
+        function closeContactModal(event) {
+            if (event && event.target !== document.getElementById('contact-modal')) return;
+            document.getElementById('contact-modal').classList.remove('active');
+        }
+
+        function resetContactText() {
+            document.getElementById('contact-text').value = t.contactPrefill;
+        }
+
+        function toggleAttachProject() {
+            const container = document.getElementById('attach-project-container');
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function onProjectSelected() {
+            const sel = document.getElementById('attach-project-select');
+            const selectedId = sel.value;
+            if (selectedId) {
+                const textarea = document.getElementById('contact-text');
+                const link = 'https://t.me/Android12TestersBot?start=app_' + selectedId;
+                if (!textarea.value.includes(link)) {
+                    textarea.value += '\n\n🔗 ' + link;
+                }
+            }
+        }
+
+        function sendContactMessage() {
+            if (!_contactOwnerUsername) {
+                showToast('Username not available');
+                return;
+            }
+            const text = document.getElementById('contact-text').value.trim();
+            if (text) {
+                try {
+                    tg.openTelegramLink('https://t.me/' + _contactOwnerUsername + '?text=' + encodeURIComponent(text));
+                } catch (e) {
+                    window.location.href = 'https://t.me/' + _contactOwnerUsername + '?text=' + encodeURIComponent(text);
+                }
+            }
+            closeContactModal({ target: document.getElementById('contact-modal') });
+        }
+
+        // --- Toggle Visibility ---
+        async function toggleVisibility(appId, isVisible) {
+            try {
+                const response = await fetch(`${API_BASE}/projects/${appId}/toggle_visibility`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_visible: isVisible })
+                });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const proj = myProjects.find(p => p.id === appId);
+                if (proj) proj.is_visible = isVisible;
+                if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            } catch (error) {
+                console.error('Toggle visibility error:', error);
+                showToast('Error');
+                const proj = myProjects.find(p => p.id === appId);
+                if (proj) proj.is_visible = !isVisible;
+                renderProjects();
+            }
+        }
+
+        // --- Extend Project Modal ---
+        let _extendAppId = null;
+
+        function openExtendModal(appId) {
+            _extendAppId = appId;
+            const proj = myProjects.find(p => p.id === appId);
+            if (!proj) return;
+            const textEl = document.getElementById('extend-modal-text');
+            const actionEl = document.getElementById('extend-modal-action');
+            textEl.textContent = t.extendText.replace('{days_left}', Math.max(0, proj.days_left || 0)).replace('{ext_count}', proj.extensions_count || 0);
+            if ((proj.extensions_count || 0) >= 3) {
+                actionEl.innerHTML = '<p style="color: #ff3b30; font-weight: 600;">' + t.extendLimitReached + '</p>';
+            } else {
+                actionEl.innerHTML = '<button class="btn btn-primary" onclick="extendProject(' + appId + ')">' + t.extendBtn + '</button>';
+            }
+            document.getElementById('extend-modal').classList.add('active');
+        }
+
+        function closeExtendModal(event) {
+            if (event && event.target !== document.getElementById('extend-modal')) return;
+            document.getElementById('extend-modal').classList.remove('active');
+        }
+
+        async function extendProject(appId) {
+            try {
+                const response = await fetch(`${API_BASE}/projects/${appId}/extend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    closeExtendModal({ target: document.getElementById('extend-modal') });
+                    loadProjects();
+                } else {
+                    showToast(data.message || 'Error');
+                }
+            } catch (error) {
+                console.error('Extend error:', error);
+                showToast('Network error');
+            }
         }
 
         function copyGroupUrl(url) {
