@@ -71,6 +71,37 @@
             align-items: center;
             margin-bottom: 12px;
         }
+        .card.card-inactive .card-header {
+            background: rgba(142, 142, 147, 0.12);
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .project-header-actions {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .project-icon-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+        }
+        .project-icon-btn.eye-on {
+            background: rgba(52,199,89,0.16);
+            color: #34c759;
+        }
+        .project-icon-btn.eye-off {
+            background: rgba(142,142,147,0.20);
+            color: var(--hint-color);
+        }
 
         .avatar {
             width: 48px;
@@ -2034,8 +2065,10 @@
             }
         });
 
-        async function loadProjects() {
-            showSkeleton('projects-list');
+        async function loadProjects(isBackground = false) {
+            if (!isBackground) {
+                showSkeleton('projects-list');
+            }
             _apiStart();
             try {
                 const response = await fetch(`${API_BASE}/projects/${userId}`);
@@ -2062,6 +2095,7 @@
                     extensions_count: project.extensions_count || 0,
                     days_left: project.days_left,
                     system_status: project.system_status || 'hidden_manual',
+                    tests_shortage: project.tests_shortage || 0,
                 }));
                 
                 visibilityStats = {
@@ -2076,7 +2110,9 @@
                 renderProjects();
             } catch (error) {
                 console.error("Error loading projects:", error);
-                showRetry('projects-list', 'loadProjects()');
+                if (!isBackground) {
+                    showRetry('projects-list', 'loadProjects()');
+                }
             } finally {
                 _apiEnd();
             }
@@ -2674,7 +2710,8 @@
 
             myProjects.forEach(project => {
                 const card = document.createElement('div');
-                card.className = 'card';
+                const isInactive = project.system_status === 'hidden_manual' || project.system_status === 'hidden_quota';
+                card.className = isInactive ? 'card card-inactive' : 'card';
 
                 // Check if app is 14+ days old
                 const appDays = project.created_at ? (Math.floor((todayDate - new Date(project.created_at)) / (1000*60*60*24)) + 1) : 0;
@@ -2830,27 +2867,25 @@
                             <div class="card-title">${project.name}</div>
                             <div class="card-subtitle">${project.package}</div>
                         </div>
-                        <button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="openEditModal(${project.id})">✏️</button>
+                        <div class="project-header-actions">
+                            <button class="project-icon-btn" onclick="openEditModal(${project.id})">✏️</button>
+                            ${project.is_visible
+                                ? `<button class="project-icon-btn eye-on" onclick="toggleVisibility(${project.id}, false)">👁️</button>`
+                                : `<button class="project-icon-btn eye-off" onclick="toggleVisibility(${project.id}, true)">🚫</button>`}
+                        </div>
                     </div>
                     <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                         ${visibilityBadge}
                     </div>
-                    <div class="visibility-toggle-row">
-                        <label class="toggle-switch">
-                            <input type="checkbox" ${project.is_visible ? 'checked' : ''} onchange="toggleVisibility(${project.id}, this.checked)">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <span style="font-size: 13px; font-weight: 500;">${t.visibleOnShowcase}</span>
-                    </div>
-                    <div style="padding-left: 54px; margin-bottom: 4px;">${(() => {
+                    <div style="margin-bottom: 6px;">${(() => {
                         const s = project.system_status;
-                        if (s === 'hidden_manual') return '<span style="color: #ff3b30; font-size: 13px; font-weight: 500;">' + t.statusHiddenManual + '</span>';
-                        if (s === 'visible_new') return '<span style="color: #34c759; font-size: 13px; font-weight: 500;">' + t.statusVisibleNew + '</span>';
-                        if (s === 'visible_quota') return '<span style="color: #34c759; font-size: 13px; font-weight: 500;">' + t.statusVisibleQuota + '</span>';
-                        if (s === 'hidden_quota') return '<span style="color: #ff9500; font-size: 13px; font-weight: 500;">' + t.statusHiddenQuota + '</span>';
+                        if (s === 'hidden_manual') return '<button class="meta-chip" style="background: rgba(142,142,147,0.2);">🚫 Скрыто вами</button>';
+                        if (s === 'visible_new') return '<button class="meta-chip accent-green">🟢 На бирже (Новинка)</button>';
+                        if (s === 'visible_quota') return '<button class="meta-chip accent-green">🟢 На бирже</button>';
+                        if (s === 'hidden_quota') return '<button class="meta-chip accent-orange">🟡 Нужно тестов: ' + (project.tests_shortage || 1) + '</button>';
                         return '';
                     })()}</div>
-                    <div class="visibility-hint">${t.inviteLinkAlways}</div>
+                    ${(project.system_status === 'hidden_manual' || project.system_status === 'hidden_quota') ? `<div class="visibility-hint">${t.inviteLinkAlways}</div>` : ''}
                     ${project.days_left !== null && project.days_left !== undefined && project.days_left <= 3 ? `
                     <div class="expire-warning">
                         <span>${t.projectExpiring.replace('{days_left}', Math.max(0, project.days_left))}</span>
@@ -3103,22 +3138,44 @@
 
         // --- Toggle Visibility ---
         async function toggleVisibility(appId, isVisible) {
+            const proj = myProjects.find(p => p.id === appId);
+            if (!proj) return;
+
+            const prev = {
+                is_visible: proj.is_visible,
+                system_status: proj.system_status,
+                tests_shortage: proj.tests_shortage,
+            };
+
+            proj.is_visible = isVisible;
+            if (!isVisible) {
+                proj.system_status = 'hidden_manual';
+                proj.tests_shortage = 0;
+            } else {
+                proj.system_status = proj.is_app_new ? 'visible_new' : 'hidden_quota';
+                proj.tests_shortage = 1;
+            }
+            renderProjects();
+
+            const request = fetch(`${API_BASE}/projects/${appId}/toggle_visibility`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_visible: isVisible })
+            });
+
+            loadProjects(true);
+
             try {
-                const response = await fetch(`${API_BASE}/projects/${appId}/toggle_visibility`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ is_visible: isVisible })
-                });
+                const response = await request;
                 if (!response.ok) throw new Error('HTTP ' + response.status);
-                const proj = myProjects.find(p => p.id === appId);
-                if (proj) proj.is_visible = isVisible;
                 if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             } catch (error) {
                 console.error('Toggle visibility error:', error);
-                showToast('Error');
-                const proj = myProjects.find(p => p.id === appId);
-                if (proj) proj.is_visible = !isVisible;
+                proj.is_visible = prev.is_visible;
+                proj.system_status = prev.system_status;
+                proj.tests_shortage = prev.tests_shortage;
                 renderProjects();
+                showToast('Ошибка обновления видимости');
             }
         }
 
