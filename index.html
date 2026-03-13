@@ -363,13 +363,16 @@
             padding: 14px;
             border-radius: 12px;
             border: 1px solid rgba(142, 142, 147, 0.3);
-            background-color: var(--bg-color);
+            background-color: rgba(142, 142, 147, 0.14);
             color: var(--text-color);
             font-size: 16px;
             outline: none;
         }
 
-        .form-input:focus { border-color: var(--link-color); }
+        .form-input:focus {
+            border-color: var(--link-color);
+            background-color: rgba(142, 142, 147, 0.18);
+        }
 
         .form-hint {
             font-size: 13px;
@@ -456,6 +459,7 @@
 
         input::placeholder,
         textarea::placeholder {
+            color: var(--hint-color);
             opacity: 0.5;
         }
 
@@ -638,9 +642,19 @@
             font-size: 14px;
             color: var(--text-color);
         }
+        .dashboard-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
         .dashboard-value {
             font-size: 14px;
             font-weight: 700;
+        }
+
+        .available-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--text-color);
         }
 
         /* App 14-day progress bar inside project cards */
@@ -787,14 +801,6 @@
 
     <!-- TAB 1: Мои тесты -->
     <div id="tab-tests" class="container tab-content active">
-        <div id="community-pulse" class="pulse-card">
-            <div class="pulse-title" id="t-pulseTitle">🌐 Пульс сообщества</div>
-            <div id="events-list" class="events-list">
-                <div class="event-time">Загрузка...</div>
-            </div>
-            <button id="events-toggle" class="events-toggle" style="display: none;" onclick="toggleEventsExpanded()">Развернуть ▼</button>
-        </div>
-
         <div class="banner" id="main-banner" style="background-color: var(--secondary-bg-color); padding: 16px; border-radius: 16px; margin-bottom: 16px; position: relative;">
             <button onclick="closeBanner()" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 16px; color: var(--hint-color); cursor: pointer; padding: 4px;">✖</button>
             <p id="t-bannerText" style="margin: 0; color: var(--text-color); font-size: 14px; line-height: 1.4; padding-right: 20px;">Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.</p>
@@ -817,8 +823,16 @@
             </div>
         </div>
 
+        <div id="community-pulse" class="pulse-card">
+            <div class="pulse-title" id="t-pulseTitle">🌐 Пульс сообщества</div>
+            <div id="events-list" class="events-list">
+                <div class="event-time">Загрузка...</div>
+            </div>
+            <button id="events-toggle" class="events-toggle" style="display: none;" onclick="toggleEventsExpanded()">Развернуть ▼</button>
+        </div>
+
         <details id="available-details" style="margin-top: 16px;">
-            <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle">🛒 Взять другие проекты на тест</span><span class="details-arrow">▼</span></summary>
+            <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle" class="available-title">🛒 Взять другие проекты на тест</span><span class="details-arrow">▼</span></summary>
             <div id="available-list" style="margin-top: 8px;">
                 <p style="text-align: center; color: var(--hint-color); margin-top: 8px;">Загрузка витрины...</p>
             </div>
@@ -857,7 +871,7 @@
             <h3 id="t-modalTitle">Добавить приложение</h3>
             <div class="form-group">
                 <label class="form-label" id="t-appName">Название приложения</label>
-                <input type="text" id="app-name" class="form-input" placeholder="Super Task Tracker">
+                <input type="text" id="app-name" class="form-input" maxlength="30" placeholder="Super Taks Tracker (до 30 символов)">
             </div>
             <div class="form-group">
                 <label class="form-label" id="t-packageName">Ссылка на Google Play</label>
@@ -1057,6 +1071,7 @@
                 emptyTestsDesc: "Вы открыли все приложения на сегодня. Возвращайтесь завтра!",
                 emptyProjects: "Добавьте свое первое приложение и отправьте инвайт-ссылку тестерам. Здесь появится сводка их ежедневной активности.",
                 fillFields: "Пожалуйста, заполните все поля.",
+                appNameTooLong: "Название приложения должно быть не длиннее 30 символов.",
                 bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.",
                 availableTitle: "🛒 Взять другие проекты на тест",
                 noAvailable: "Пока нет доступных приложений",
@@ -1121,7 +1136,7 @@
                 testDayExplain: "Вы тестируете это приложение {days}-й день из 14.\n\nДни обязательных скриншотов: 1, 7 и 14.\nВ эти дни необходимо отправить разработчику скриншот запуска приложения в личные сообщения.",
                 newBadgeUntil: "🆕 Новинка (до {date})",
                 newBadgeToast: "Приложение автоматически видно на витрине первые 72 часа после публикации. После этого видимость зависит от ваших активных тестов чужих приложений.",
-                disclaimerText: "⚠️ Платформа не гарантирует прохождение модерации Google Play. Каждое приложение оценивается Google индивидуально. Наличие 12 активных тестировщиков повышает шансы, но не является гарантией.",
+                disclaimerText: "⚠️ Платформа помогает выполнить базовое требование Google Play (12 тестеров на 14 дней), но не гарантирует успешную модерацию. Каждое приложение оценивается индивидуально, и итоговое решение зависит исключительно от внутренней политики и правил модерации Google.",
                 // Instruction chips
                 chipBrowse: "Пройдись по всем экранам",
                 chipScreenshot3: "Скриншот каждые 3 дня в ЛС",
@@ -1237,6 +1252,7 @@
                 emptyTestsDesc: "You've checked all apps for today. Come back tomorrow!",
                 emptyProjects: "Add your first app and send an invite link to testers. A summary of their daily activity will appear here.",
                 fillFields: "Please fill in all fields.",
+                appNameTooLong: "App name must be 30 characters or less.",
                 bannerText: "Get rid of chat chaos! Control daily check-ins for 12 testers in one place and find new apps for mutual testing.",
                 availableTitle: "🛒 Take other projects to test",
                 noAvailable: "No apps available yet",
@@ -1301,7 +1317,7 @@
                 testDayExplain: "You've been testing this app for {days} days out of 14.\n\nMandatory screenshot days: 1, 7, and 14.\nOn these days you must send the developer a launch screenshot via direct message.",
                 newBadgeUntil: "🆕 New (until {date})",
                 newBadgeToast: "The app is automatically visible on the showcase for the first 72 hours after publishing. After that, visibility depends on your active tests of other apps.",
-                disclaimerText: "⚠️ This platform does not guarantee passing Google Play moderation. Each app is evaluated by Google individually. Having 12 active testers improves your chances but does not guarantee approval.",
+                disclaimerText: "⚠️ The platform helps fulfill the basic Google Play requirement (12 testers for 14 days) but does not guarantee successful moderation. Each app is evaluated individually, and the final decision depends entirely on Google's internal policies and moderation rules.",
                 // Instruction chips
                 chipBrowse: "Go through all screens",
                 chipScreenshot3: "Screenshot every 3 days in DM",
@@ -2177,7 +2193,7 @@
                 const dashHtml = `
                     <div class="dashboard-block">
                         <div class="dashboard-row">
-                            <span class="dashboard-label">${t.visibilityTitle}</span>
+                            <span class="dashboard-label dashboard-title">${t.visibilityTitle}</span>
                             <button class="meta-chip accent-yellow" onclick="showKarmaInfo()">☯️ ${visibilityStats.ownerKarma}</button>
                         </div>
                         ${visibleLine ? `<div class="dashboard-row"><span class="dashboard-label">${visibleLine}</span></div>` : ''}
@@ -3074,6 +3090,12 @@
             if (!nameInput || !packageInput) {
                 if (tg.showAlert) tg.showAlert(t.fillFields);
                 else alert(t.fillFields);
+                return;
+            }
+
+            if (nameInput.length > 30) {
+                if (tg.showAlert) tg.showAlert(t.appNameTooLong);
+                else alert(t.appNameTooLong);
                 return;
             }
             
