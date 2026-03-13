@@ -926,16 +926,33 @@
         .compact-card-main {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
-        .compact-card-clickable {
-            flex: 1;
+        .compact-card-icon {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .compact-card-clickable {
+            display: flex;
+            align-items: flex-start;
+            flex-direction: column;
             cursor: pointer;
             min-width: 0;
             -webkit-tap-highlight-color: transparent;
+        }
+        .compact-card-center {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .compact-card-right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
         .compact-card-info {
             flex: 1;
@@ -961,16 +978,12 @@
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
-            margin-top: 4px;
-        }
-        .compact-card-badges .meta-chip {
-            padding: 3px 8px;
-            font-size: 11px;
-            border-radius: 10px;
-            cursor: default;
+            margin-top: 8px;
         }
         .compact-card .avatar {
             margin-right: 0;
+            width: 48px;
+            height: 48px;
         }
         .compact-test-btn {
             padding: 8px 16px;
@@ -1018,6 +1031,7 @@
             color: var(--hint-color);
             white-space: pre-wrap;
             word-break: break-word;
+            overflow: hidden;
         }
 
         /* Contact modal textarea */
@@ -1064,19 +1078,19 @@
         </div>
 
         <details id="available-details" style="margin-top: 16px;">
-            <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle" class="available-title">🛒 Взять другие проекты на тест</span><span class="details-arrow">▼</span></summary>
+            <summary style="font-weight: bold; cursor: pointer; padding: 12px; background: var(--bg-color); border-radius: 8px; list-style: none; display: flex; justify-content: space-between; align-items: center;"><span id="t-availableTitle" class="available-title">📱 Биржа проектов (0)</span><span class="details-arrow">▼</span></summary>
             <div style="margin-top: 8px;">
                 <div class="showcase-tabs" id="showcase-tabs">
-                    <button class="showcase-tab active" data-tab="needed" onclick="switchShowcaseTab('needed')">
-                        🔥 Testers Needed (<span id="needed-count">0</span>)
+                        <button class="showcase-tab active" data-tab="needed" id="needed-tab-btn" onclick="switchShowcaseTab('needed')">
+                            🔥 Тестеры Нужны (<span id="needed-count">0</span>)
                     </button>
                     <button class="showcase-tab" data-tab="prelaunch" id="prelaunch-tab-btn" onclick="switchShowcaseTab('prelaunch')" style="display:none;">
-                        🚀 Pre-Launch (<span id="prelaunch-count">0</span>)
+                            🚀 Предзапуск (<span id="prelaunch-count">0</span>)
                     </button>
                 </div>
                 <div class="showcase-snap-container" id="showcase-snap">
                     <div class="showcase-snap-panel" id="showcase-needed">
-                        <p style="text-align: center; color: var(--hint-color); margin-top: 8px;" id="t-loadingShowcase">Загрузка витрины...</p>
+                        <p style="text-align: center; color: var(--hint-color); margin-top: 8px;" id="t-loadingShowcase">Загрузка биржи...</p>
                     </div>
                     <div class="showcase-snap-panel" id="showcase-prelaunch" style="display:none;"></div>
                 </div>
@@ -1322,7 +1336,7 @@
                 openPlay: "1️⃣ Открыть Google Play",
                 confirmStart: "2️⃣ Подтвердить запуск",
                 successCheckin: "✅ Успешно!",
-                loadingShowcase: "Загрузка витрины...",
+                loadingShowcase: "Загрузка биржи...",
                 retryBtn: "🔄 Повторить попытку",
                 loadError: "Не удалось загрузить данные",
                 leaveReview: "🌟 Оставить приватный отзыв",
@@ -1347,7 +1361,7 @@
                 fillFields: "Пожалуйста, заполните все поля.",
                 appNameTooLong: "Название приложения должно быть не длиннее 30 символов.",
                 bannerText: "Избавьтесь от хаоса в чатах! Контролируйте ежедневные запуски для 12 тестеров в одном месте и находите новые приложения для взаимного теста.",
-                availableTitle: "🛒 Взять другие проекты на тест",
+                availableTitle: "📱 Биржа проектов",
                 noAvailable: "Пока нет доступных приложений",
                 activeTesters: "Активных тестеров",
                 contactOwner: "Написать владельцу",
@@ -1402,14 +1416,14 @@
                 statusDaysAgo: "дн. назад",
                 // Timer
                 timerRemaining: "⏳ Осталось {sec} сек...",
-                antiFraudAlert: "⚠️ Google Play жестко проверяет вовлеченность (до 15 сек на сессию). Быстрые клики убьют стату нам обоим!\n\nПроведите это время с пользой: походи по меню, найдите баг или у тебя появится совет. За ценный фидбек разработчики дают Карму ☯️.\nА высокая Карма — это отличный способ поднять уже ВАШИ проекты в ТОП витрины!",
+                antiFraudAlert: "⚠️ Google Play жестко проверяет вовлеченность (до 15 сек на сессию). Быстрые клики убьют стату нам обоим!\n\nПроведите это время с пользой: походи по меню, найдите баг или у тебя появится совет. За ценный фидбек разработчики дают Карму ☯️.\nА высокая Карма — это отличный способ поднять уже ВАШИ проекты в ТОП биржи!",
                 confirmed: "✅ Засчитано!",
                 daysShort: "📅 {days} дн.",
                 testersShort: "👥 {count}",
                 myTestDayShort: "🧪 {days} день",
                 testDayExplain: "Вы тестируете это приложение {days}-й день из 14.\n\nДни обязательных скриншотов: 1, 7 и 14.\nВ эти дни необходимо отправить разработчику скриншот запуска приложения в личные сообщения.",
                 newBadgeUntil: "🆕 Новинка (до {date})",
-                newBadgeToast: "Приложение автоматически видно на витрине первые 72 часа после публикации. После этого видимость зависит от ваших активных тестов чужих приложений.",
+                newBadgeToast: "Приложение автоматически видно на бирже первые 72 часа после публикации. После этого видимость зависит от ваших активных тестов чужих приложений.",
                 disclaimerText: "⚠️ Платформа помогает выполнить базовое требование Google Play (12 тестеров на 14 дней), но не гарантирует успешную модерацию. Каждое приложение оценивается индивидуально, и итоговое решение зависит исключительно от внутренней политики и правил модерации Google.",
                 // Instruction chips
                 chipBrowse: "Пройдись по всем экранам",
@@ -1451,12 +1465,12 @@
                 timeHourAgo: "{count} ч.",
                 timeDayAgo: "{count} дн.",
                 // Visibility system
-                visibilityPublic: "🟢 Видно на Витрине",
-                visibilityPrivate: "🔴 Скрыто из Витрины",
+                visibilityPublic: "🟢 Видно на Бирже",
+                visibilityPrivate: "🔴 Скрыто из Биржи",
                 visibilityAllPublic: "🟢 Все приложения видны",
                 visibilityPartial: "🟡 Видно {visible} из {total}",
-                visibilityNone: "🔴 Не видно на Витрине",
-                visibilityHint: "Каждое ваше приложение требует 3 активных теста чужих приложений за 72ч. Новые приложения видны на витрине автоматически первые 3 дня.",
+                visibilityNone: "🔴 Не видно на Бирже",
+                visibilityHint: "Каждое ваше приложение требует 3 активных теста чужих приложений за 72ч. Новые приложения видны на бирже автоматически первые 3 дня.",
                 visibilityTitle: "📊 Панель разработчика",
                 activeTestsLabel: "Ваших активных тестов",
                 rankLabel: "Рейтинг: #{rank} из {total}",
@@ -1470,9 +1484,9 @@
                 // Open button
                 openBtn: "📱 Открыть",
                 // Karma info popup
-                karmaInfoText: "☯️ Карма — это ваша репутация на платформе.\n\nЗа что дают:\n👍 Базовый тест: +1\n💡 Ценный фидбек или Баг: +2\n\nКак это работает?\nКарма — влияет на позицию на Витрине. При одинаковом количестве активных тестов выше в списке будет тот разработчик, у которого больше Кармы. Помогайте другим качественно, чтобы продвигать свои проекты!",
+                karmaInfoText: "☯️ Карма — это ваша репутация на платформе.\n\nЗа что дают:\n👍 Базовый тест: +1\n💡 Ценный фидбек или Баг: +2\n\nКак это работает?\nКарма — влияет на позицию на Бирже. При одинаковом количестве активных тестов выше в списке будет тот разработчик, у которого больше Кармы. Помогайте другим качественно, чтобы продвигать свои проекты!",
                 // Rank popup
-                rankPopupText: "🏆 Ваша позиция на Витрине: #{rank} из {total}\n\nСколько активных тестов нужно для попадания в ТОП:\n\nTOP-1: {t1} тестов\nTOP-2: {t2} тестов\nTOP-3: {t3} тестов\nTOP-4: {t4} тестов\nTOP-5: {t5} тестов\n\nУ вас сейчас: {my} активных тестов",
+                rankPopupText: "🏆 Ваша позиция на Бирже: #{rank} из {total}\n\nСколько активных тестов нужно для попадания в ТОП:\n\nTOP-1: {t1} тестов\nTOP-2: {t2} тестов\nTOP-3: {t3} тестов\nTOP-4: {t4} тестов\nTOP-5: {t5} тестов\n\nУ вас сейчас: {my} активных тестов",
                 // Karma chip info
                 karmaChipInfoText: "☯️ Благодарность тестеру\n\nВы можете по своему желанию отблагодарить тестера, присвоив ему Карму.\n\nДоступно 2 благодарности:\n• 1-я — доступна сразу после начала тестирования\n• 2-я — открывается после 7-го дня тестов\n\nТипы наград:\n👍 Хороший тестер: +1 ☯️\n💡 Ценный фидбек / Баг: +2 ☯️",
                 karmaLimitInfoText: "Лимит наград: 2 на один проект.\n\n1-я награда доступна в первую неделю.\n2-я награда добавляется со второй недели.\n\nИспользуйте их, чтобы поощрять тестеров за качественный фидбек!",
@@ -1484,7 +1498,7 @@
                 karmaAvailable: "☯️ Доступно: {count}",
                 karmaNoRewards: "☯️ Наград нет",
                 // Showcase karma info
-                showcaseKarmaInfo: "☯️ Репутация разработчика: {karma}\n\nКарма — это показатель доверия сообщества. Она выдается тем, кто не просто «прокликивает» чужие приложения, а дает ценный фидбек и находит баги.\n\nРазработчики с высокой кармой получают приоритет на Витрине!",
+                showcaseKarmaInfo: "☯️ Репутация разработчика: {karma}\n\nКарма — это показатель доверия сообщества. Она выдается тем, кто не просто «прокликивает» чужие приложения, а дает ценный фидбек и находит баги.\n\nРазработчики с высокой кармой получают приоритет на Бирже!",
                 // Report modal
                 reportModalTitle: "📸 Отправка отчёта",
                 reportModalHint: "Не забудьте прикрепить сам скриншот, когда откроется Telegram!",
@@ -1497,11 +1511,11 @@
                 tabTestersNeeded: "🔥 Testers Needed",
                 tabPreLaunch: "🚀 Pre-Launch",
                 // Visibility toggle
-                visibleOnShowcase: "👁️ Видим на витрине",
-                inviteLinkAlways: "💡 Ваша инвайт-ссылка работает всегда, даже если приложение скрыто с Витрины.",
+                visibleOnShowcase: "👁️ Видим на бирже",
+                inviteLinkAlways: "💡 Ваша инвайт-ссылка работает всегда, даже если приложение скрыто с Биржи.",
                 // Contact modal
                 contactTitle: "Связаться с разработчиком",
-                contactPrefill: "Привет! 👋 Нашел твой проект на витрине DevTest Hub. Беру ваш проект на взаимное тестирование.",
+                contactPrefill: "Привет! 👋 Нашел твой проект на бирже DevTest Hub. Беру ваш проект на взаимное тестирование.",
                 contactChipMutual: "🔄 Предложить взаимку",
                 contactChipAttach: "🔗 Прикрепить мой проект",
                 contactSendBtn: "Отправить (Telegram)",
@@ -1518,7 +1532,7 @@
                 testBtnShort: "Тест",
                 statusHiddenManual: "🔴 Скрыто вручную",
                 statusVisibleNew: "🟢 Видно (Новинка)",
-                statusVisibleQuota: "🟢 Видно на витрине",
+                statusVisibleQuota: "🟢 Видно на бирже",
                 statusHiddenQuota: "🟡 Скрыто (Нужно 3 активных теста)",
             },
             en: {
@@ -1530,7 +1544,7 @@
                 openPlay: "1️⃣ Open Google Play",
                 confirmStart: "2️⃣ Confirm start",
                 successCheckin: "✅ Success!",
-                loadingShowcase: "Loading showcase...",
+                loadingShowcase: "Loading exchange...",
                 retryBtn: "🔄 Retry",
                 loadError: "Failed to load data",
                 leaveReview: "🌟 Leave Private Review",
@@ -1555,7 +1569,7 @@
                 fillFields: "Please fill in all fields.",
                 appNameTooLong: "App name must be 30 characters or less.",
                 bannerText: "Get rid of chat chaos! Control daily check-ins for 12 testers in one place and find new apps for mutual testing.",
-                availableTitle: "🛒 Take other projects to test",
+                availableTitle: "📱 Project Exchange",
                 noAvailable: "No apps available yet",
                 activeTesters: "Active testers",
                 contactOwner: "Contact owner",
@@ -1610,14 +1624,14 @@
                 statusDaysAgo: "days ago",
                 // Timer
                 timerRemaining: "⏳ {sec} sec left...",
-                antiFraudAlert: "⚠️ Google Play strictly checks engagement (up to 15 seconds per session). Quick clicks will kill our status!\n\nSpend this time wisely: browse the menu, find a bug, or you will receive a tip. Developers give Karma ☯️ for valuable feedback.\nHigh Karma is a great way to boost YOUR projects to the top of the showcase!",
+                antiFraudAlert: "⚠️ Google Play strictly checks engagement (up to 15 seconds per session). Quick clicks will kill our status!\n\nSpend this time wisely: browse the menu, find a bug, or you will receive a tip. Developers give Karma ☯️ for valuable feedback.\nHigh Karma is a great way to boost YOUR projects to the top of the exchange!",
                 confirmed: "✅ Counted!",
                 daysShort: "📅 {days} d.",
                 testersShort: "👥 {count}",
                 myTestDayShort: "🧪 Day {days}",
                 testDayExplain: "You've been testing this app for {days} days out of 14.\n\nMandatory screenshot days: 1, 7, and 14.\nOn these days you must send the developer a launch screenshot via direct message.",
                 newBadgeUntil: "🆕 New (until {date})",
-                newBadgeToast: "The app is automatically visible on the showcase for the first 72 hours after publishing. After that, visibility depends on your active tests of other apps.",
+                newBadgeToast: "The app is automatically visible on the exchange for the first 72 hours after publishing. After that, visibility depends on your active tests of other apps.",
                 disclaimerText: "⚠️ The platform helps fulfill the basic Google Play requirement (12 testers for 14 days) but does not guarantee successful moderation. Each app is evaluated individually, and the final decision depends entirely on Google's internal policies and moderation rules.",
                 // Instruction chips
                 chipBrowse: "Go through all screens",
@@ -1659,11 +1673,11 @@
                 timeHourAgo: "{count} h",
                 timeDayAgo: "{count} d",
                 // Visibility system
-                visibilityPublic: "🟢 Visible on Showcase",
-                visibilityPrivate: "🔴 Hidden from Showcase",
+                visibilityPublic: "🟢 Visible on Exchange",
+                visibilityPrivate: "🔴 Hidden from Exchange",
                 visibilityAllPublic: "🟢 All apps visible",
                 visibilityPartial: "🟡 {visible} of {total} visible",
-                visibilityNone: "🔴 Not visible on Showcase",
+                visibilityNone: "🔴 Not visible on Exchange",
                 visibilityHint: "Each of your apps requires 3 active tests of others' apps in 72h. New apps are automatically visible for the first 3 days.",
                 visibilityTitle: "📊 Developer Dashboard",
                 activeTestsLabel: "Your active tests",
@@ -1678,9 +1692,9 @@
                 // Open button
                 openBtn: "📱 Open",
                 // Karma info popup
-                karmaInfoText: "☯️ Karma is your reputation on the platform.\n\n What it is awarded for: 👍 Basic test: +1 💡 Valuable feedback or bug: +2\n\n How does it work?\n Karma affects your position in the Showcase. If the number of active tests is the same, the developer with more Karma will be higher in the list. Help others effectively to promote your projects!",
+                karmaInfoText: "☯️ Karma is your reputation on the platform.\n\n What it is awarded for: 👍 Basic test: +1 💡 Valuable feedback or bug: +2\n\n How does it work?\n Karma affects your position on the Exchange. If the number of active tests is the same, the developer with more Karma will be higher in the list. Help others effectively to promote your projects!",
                 // Rank popup
-                rankPopupText: "🏆 Your Showcase position: #{rank} of {total}\n\nActive tests needed for each TOP position:\n\nTOP-1: {t1} tests\nTOP-2: {t2} tests\nTOP-3: {t3} tests\nTOP-4: {t4} tests\nTOP-5: {t5} tests\n\nYou currently have: {my} active tests",
+                rankPopupText: "🏆 Your Exchange position: #{rank} of {total}\n\nActive tests needed for each TOP position:\n\nTOP-1: {t1} tests\nTOP-2: {t2} tests\nTOP-3: {t3} tests\nTOP-4: {t4} tests\nTOP-5: {t5} tests\n\nYou currently have: {my} active tests",
                 // Karma chip info
                 karmaChipInfoText: "☯️ Tester Appreciation\n\nYou can optionally reward your tester by awarding Karma.\n\nYou have 2 rewards available:\n• 1st — available immediately after testing starts\n• 2nd — unlocks after day 7 of testing\n\nReward types:\n👍 Good tester: +1 ☯️\n💡 Valuable Feedback / Bug: +2 ☯️",
                 karmaLimitInfoText: "Reward limit: 2 per project.\n\nThe 1st reward is available in the first week.\nThe 2nd reward is added from the second week.\n\nUse them to encourage testers for high-quality feedback!",
@@ -1692,7 +1706,7 @@
                 karmaAvailable: "☯️ Available: {count}",
                 karmaNoRewards: "☯️ No rewards",
                 // Showcase karma info
-                showcaseKarmaInfo: "☯️ Developer Reputation: {karma}\n\nKarma is a measure of community trust. It is awarded to those who don't just «click through» other people's apps, but provide valuable feedback and find bugs.\n\nDevelopers with high karma get priority on the Showcase!",
+                showcaseKarmaInfo: "☯️ Developer Reputation: {karma}\n\nKarma is a measure of community trust. It is awarded to those who don't just «click through» other people's apps, but provide valuable feedback and find bugs.\n\nDevelopers with high karma get priority on the Exchange!",
                 // Report modal
                 reportModalTitle: "📸 Send Report",
                 reportModalHint: "Don't forget to attach the screenshot once Telegram opens!",
@@ -1705,11 +1719,11 @@
                 tabTestersNeeded: "🔥 Testers Needed",
                 tabPreLaunch: "🚀 Pre-Launch",
                 // Visibility toggle
-                visibleOnShowcase: "👁️ Visible on showcase",
-                inviteLinkAlways: "💡 Your invite link always works, even if the app is hidden from the Showcase.",
+                visibleOnShowcase: "👁️ Visible on exchange",
+                inviteLinkAlways: "💡 Your invite link always works, even if the app is hidden from the Exchange.",
                 // Contact modal
                 contactTitle: "Contact developer",
-                contactPrefill: "Hi! 👋 Found your project on DevTest Hub showcase. Taking your project for mutual testing.",
+                contactPrefill: "Hi! 👋 Found your project on DevTest Hub exchange. Taking your project for mutual testing.",
                 contactChipMutual: "🔄 Offer mutual test",
                 contactChipAttach: "🔗 Attach my project",
                 contactSendBtn: "Send (Telegram)",
@@ -1726,7 +1740,7 @@
                 testBtnShort: "Test",
                 statusHiddenManual: "🔴 Hidden manually",
                 statusVisibleNew: "🟢 Visible (New app)",
-                statusVisibleQuota: "🟢 Visible on showcase",
+                statusVisibleQuota: "🟢 Visible on exchange",
                 statusHiddenQuota: "🟡 Hidden (Need 3 active tests)",
             }
         };
@@ -1755,7 +1769,8 @@
             document.getElementById('t-save').innerText = t.save;
             document.getElementById('t-bannerText').innerText = t.bannerText;
             document.getElementById('t-disclaimerText').innerText = t.disclaimerText;
-            document.getElementById('t-availableTitle').innerText = t.availableTitle;
+            const exchangeTotal = (showcaseTestersNeeded?.length || 0) + (showcasePreLaunch?.length || 0);
+            document.getElementById('t-availableTitle').innerText = `${t.availableTitle} (${exchangeTotal})`;
             document.getElementById('t-deleteModalTitle').innerText = t.deleteModalTitle;
             document.getElementById('t-deleteMessageLabel').innerText = t.deleteMessageLabel;
             document.getElementById('t-cancelDelete').innerText = t.cancelDelete;
@@ -2439,10 +2454,21 @@
             const neededCount = document.getElementById('needed-count');
             const prelaunchCount = document.getElementById('prelaunch-count');
             const prelaunchBtn = document.getElementById('prelaunch-tab-btn');
+            const neededBtn = document.getElementById('needed-tab-btn');
+            const availableTitle = document.getElementById('t-availableTitle');
             if (!neededPanel || !prelaunchPanel) return;
 
             neededCount.textContent = showcaseTestersNeeded.length;
             prelaunchCount.textContent = showcasePreLaunch.length;
+            if (neededBtn) {
+                neededBtn.innerHTML = `${t.tabTestersNeeded} (<span id="needed-count">${showcaseTestersNeeded.length}</span>)`;
+            }
+            if (prelaunchBtn) {
+                prelaunchBtn.innerHTML = `${t.tabPreLaunch} (<span id="prelaunch-count">${showcasePreLaunch.length}</span>)`;
+            }
+            if (availableTitle) {
+                availableTitle.innerText = `${t.availableTitle} (${showcaseTestersNeeded.length + showcasePreLaunch.length})`;
+            }
 
             if (showcasePreLaunch.length > 0) {
                 prelaunchBtn.style.display = '';
@@ -2472,23 +2498,27 @@
         function renderCompactCard(app) {
             const ownerDisplay = app.owner_full_name || (app.owner_username ? '@' + app.owner_username : '???');
             const ownerUsername = app.owner_username || '';
+            const esc = (text) => String(text || '').replace(/'/g, "\\'");
+            const testersTooltip = esc(t.chipTooltipTesters.replace('{count}', app.active_testers_count || 0));
+            const daysValue = app.days_since_publish || 1;
+            const daysTooltip = esc(t.chipTooltipDays.replace('{days}', daysValue));
 
             let badges = '';
             if (app.owner_karma) {
-                badges += '<span class="meta-chip accent-yellow" style="cursor:default;">☯️ ' + app.owner_karma + '</span>';
+                badges += '<button class="meta-chip accent-yellow" onclick="showShowcaseKarmaInfo(' + (app.owner_karma || 0) + '); event.stopPropagation();">☯️ ' + app.owner_karma + '</button>';
             }
-            badges += '<span class="meta-chip accent-blue" style="cursor:default;">👥 ' + (app.active_testers_count || 0) + '</span>';
+            badges += '<button class="meta-chip accent-blue" onclick="showToast(\'' + testersTooltip + '\'); event.stopPropagation();">👥 ' + (app.active_testers_count || 0) + '</button>';
             if (app.is_new) {
-                badges += '<span class="meta-chip accent-green" style="cursor:default;">🆕</span>';
+                badges += '<button class="meta-chip accent-green" onclick="showToast(\'' + daysTooltip + '\'); event.stopPropagation();">🆕</button>';
             } else if (app.days_since_publish) {
-                badges += '<span class="meta-chip" style="cursor:default;">📅 ' + app.days_since_publish + 'д</span>';
+                badges += '<button class="meta-chip" onclick="showToast(\'' + daysTooltip + '\'); event.stopPropagation();">📅 ' + app.days_since_publish + 'д</button>';
             }
 
             let instructionHtml = '';
             if (app.instructions) {
                 instructionHtml = `
                     <details class="compact-instruction" onclick="event.stopPropagation();">
-                        <summary>
+                        <summary onclick="event.stopPropagation();">
                             <span class="compact-instruction-arrow">▶</span>
                             ${t.instructionAccordion}
                         </summary>
@@ -2500,17 +2530,21 @@
             return `
                 <div class="compact-card">
                     <div class="compact-card-main">
-                        <div class="compact-card-clickable" onclick="openContactModal('${ownerUsername}')">
+                        <div class="compact-card-icon">
                             ${renderIcon(app.name, app.icon_url)}
-                            <div class="compact-card-info">
+                        </div>
+                        <div class="compact-card-center">
+                            <div class="compact-card-clickable" onclick="openContactModal('${ownerUsername}')">
                                 <div class="compact-card-name">${app.name}</div>
                                 <div class="compact-card-owner">${ownerDisplay} 💬</div>
-                                <div class="compact-card-badges">${badges}</div>
                             </div>
+                            <div class="compact-card-badges">${badges}</div>
+                            ${instructionHtml}
                         </div>
-                        <button class="compact-test-btn" onclick="takeAppToTest(${app.app_id})">${t.testBtnShort}</button>
+                        <div class="compact-card-right">
+                            <button class="compact-test-btn" onclick="takeAppToTest(${app.app_id})">${t.testBtnShort}</button>
+                        </div>
                     </div>
-                    ${instructionHtml}
                 </div>
             `;
         }
@@ -2521,6 +2555,45 @@
             const target = document.getElementById(tab === 'prelaunch' ? 'showcase-prelaunch' : 'showcase-needed');
             if (snap && target) snap.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
         }
+
+        function toggleDetailsWithAnimation(detailsEl) {
+            if (!detailsEl || detailsEl.dataset.animating === '1') return;
+            const summary = detailsEl.querySelector(':scope > summary');
+            if (!summary) return;
+
+            const startHeight = detailsEl.offsetHeight;
+            const isOpen = detailsEl.open;
+            if (!isOpen) {
+                detailsEl.open = true;
+            }
+            const endHeight = isOpen ? summary.offsetHeight : detailsEl.offsetHeight;
+
+            detailsEl.dataset.animating = '1';
+            detailsEl.style.overflow = 'hidden';
+            detailsEl.style.height = `${startHeight}px`;
+
+            const animation = detailsEl.animate(
+                [{ height: `${startHeight}px` }, { height: `${endHeight}px` }],
+                { duration: 220, easing: 'ease' }
+            );
+
+            animation.onfinish = () => {
+                if (isOpen) {
+                    detailsEl.open = false;
+                }
+                detailsEl.style.height = '';
+                detailsEl.style.overflow = '';
+                detailsEl.dataset.animating = '0';
+            };
+        }
+
+        document.addEventListener('click', (event) => {
+            const summary = event.target.closest('details > summary');
+            if (!summary) return;
+            event.preventDefault();
+            event.stopPropagation();
+            toggleDetailsWithAnimation(summary.parentElement);
+        });
 
         // Sync showcase tabs with scroll snap
         document.addEventListener('DOMContentLoaded', () => {
