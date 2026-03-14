@@ -1342,6 +1342,17 @@
         </div>
     </div>
 
+    <div id="drop-test-modal" class="modal-overlay" onclick="closeDropTestModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="t-dropTestTitle">🗑️ Отказаться</h3>
+            <p id="t-dropTestWarning" style="color: var(--text-color); font-size: 14px; line-height: 1.5; white-space: pre-line; margin-bottom: 20px;"></p>
+            <div class="action-row">
+                <button class="btn btn-secondary" style="flex: 1; background-color: var(--secondary-bg-color); color: var(--text-color); border: 1px solid rgba(142, 142, 147, 0.2);" onclick="closeDropTestModal()" id="t-btnCancel">Отмена</button>
+                <button class="btn" style="flex: 1; background-color: rgba(255, 59, 48, 0.1); color: #ff3b30;" onclick="confirmDropTest()" id="t-btnDrop">Отказаться</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Telegram Web App
         const tg = window.Telegram.WebApp;
@@ -1560,6 +1571,13 @@
                 extendLimitReached: "Лимит продлений исчерпан",
                 projectExpiring: "⚠️ Проект будет удален через {days_left} дн.",
                 extendBtnShort: "Продлить",
+                dropTestTitle: "🗑️ Отказаться",
+                dropTestWarning: "Вы уверены, что хотите отказаться от тестирования?\n\n⚠️ ВНИМАНИЕ: Это действие уменьшит счетчик ваших активных тестов. Если у вас опубликованы свои проекты, они могут ПОТЕРЯТЬ ВИДИМОСТЬ на витрине из-за нехватки тестов!",
+                btnCancel: "Отмена",
+                btnDrop: "Отказаться",
+                visibilityManualToast: "Приложение скрыто. Ваша инвайт-ссылка продолжает работать.",
+                visibilityQuotaToast: "Если вам больше не нужны тестеры для обмена, вы можете скрыть приложение с биржи, нажав на 👁️ в шапке.",
+                visibilityNeedTestsToast: "Возьмите на тест еще {count} проекта, чтобы вернуть видимость на бирже.",
                 // Compact card
                 instructionAccordion: "📝 Инструкция",
                 testBtnShort: "Тест",
@@ -1768,6 +1786,13 @@
                 extendLimitReached: "Extension limit reached",
                 projectExpiring: "⚠️ Project will be deleted in {days_left} days",
                 extendBtnShort: "Extend",
+                dropTestTitle: "🗑️ Drop test",
+                dropTestWarning: "Are you sure you want to drop this test?\n\n⚠️ WARNING: This will reduce your active test count. If you have your own published projects, they may LOSE VISIBILITY on the showcase due to a lack of tests!",
+                btnCancel: "Cancel",
+                btnDrop: "Drop",
+                visibilityManualToast: "The app is hidden. Your invite link still works.",
+                visibilityQuotaToast: "If you no longer need testers for exchange, you can hide the app from the exchange by tapping 👁️ in the header.",
+                visibilityNeedTestsToast: "Take {count} more projects for testing to restore visibility on the exchange.",
                 // Compact card
                 instructionAccordion: "📝 Instructions",
                 testBtnShort: "Test",
@@ -1851,6 +1876,10 @@
             document.getElementById('contact-chip-mutual').innerText = t.contactChipMutual;
             document.getElementById('contact-chip-attach').innerText = t.contactChipAttach;
             document.getElementById('t-extendTitle').innerText = t.extendTitle;
+            document.getElementById('t-dropTestTitle').innerText = t.dropTestTitle;
+            document.getElementById('t-dropTestWarning').innerText = t.dropTestWarning;
+            document.getElementById('t-btnCancel').innerText = t.btnCancel;
+            document.getElementById('t-btnDrop').innerText = t.btnDrop;
         }
 
         function applyLanguage(newLang) {
@@ -2023,7 +2052,13 @@
                 showcaseTestersNeeded = data.testers_needed || [];
                 showcasePreLaunch = data.pre_launch || [];
                 showcaseLoadError = false;
-                availableAppsLoaded = false;
+                const availableDetails = document.getElementById('available-details');
+                if (availableDetails && availableDetails.open) {
+                    availableAppsLoaded = true;
+                    renderShowcase();
+                } else {
+                    availableAppsLoaded = false;
+                }
             } catch (error) {
                 console.error("Error loading tasks:", error);
                 showRetry('tests-list', 'loadTasks()');
@@ -2248,19 +2283,19 @@
             if (typeof daysSincePublish === 'number' && daysSincePublish >= 0) {
                 const dayLabel = t.daysShort.replace('{days}', daysSincePublish);
                 const tooltip = t.chipTooltipDays.replace('{days}', daysSincePublish);
-                parts.push(`<button class="meta-chip" onclick="showToast('${tooltip.replace(/'/g, "\\'")}')">${dayLabel}</button>`);
+                parts.push(`<button class="meta-chip" onclick="event.stopPropagation(); showToast('${tooltip.replace(/'/g, "\\'")}')">${dayLabel}</button>`);
             }
             if (typeof activeTestersCount === 'number') {
                 const testerLabel = t.testersShort.replace('{count}', activeTestersCount);
                 const tooltip = t.chipTooltipTesters.replace('{count}', activeTestersCount);
-                parts.push(`<button class="meta-chip" onclick="showToast('${tooltip.replace(/'/g, "\\'")}')">${testerLabel}</button>`);
+                parts.push(`<button class="meta-chip" onclick="event.stopPropagation(); showToast('${tooltip.replace(/'/g, "\\'")}')">${testerLabel}</button>`);
             }
             if (typeof userTestingDay === 'number' && userTestingDay > 0) {
                 const dayText = t.myTestDayShort.replace('{days}', userTestingDay);
                 const isScreenshot = [1, 7, 14].includes(userTestingDay);
                 const screenshotIcon = isScreenshot ? ' 📸' : '';
                 const chipClass = isScreenshot ? 'meta-chip accent-orange' : 'meta-chip accent-blue';
-                parts.push(`<button class="${chipClass}" onclick="showTestDayPopup(${userTestingDay})">${dayText}${screenshotIcon}</button>`);
+                parts.push(`<button class="${chipClass}" onclick="event.stopPropagation(); showTestDayPopup(${userTestingDay})">${dayText}${screenshotIcon}</button>`);
             }
             if (isNew) {
                 parts.unshift(`<button class="meta-chip accent-green">${t.newBadge}</button>`);
@@ -2371,9 +2406,12 @@
                 }
 
                 let ownerBtnHtml = '';
+                const headerActions = [];
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event)">💬</button>`;
+                    headerActions.push(`<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event)">💬</button>`);
                 }
+                headerActions.push(`<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; border: none; background: transparent; color: #ff3b30;" onclick="openDropTestModal(${test.id}, event)">🗑️</button>`);
+                ownerBtnHtml = `<div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">${headerActions.join('')}</div>`;
 
                 let devInfoHtml = '';
                 if (test.instructions) {
@@ -2452,9 +2490,12 @@
                 `;
 
                 let ownerBtnHtml = '';
+                const headerActions = [];
                 if (test.owner_username) {
-                    ownerBtnHtml = `<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; margin-left: auto; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event)">💬</button>`;
+                    headerActions.push(`<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; border: none; background: transparent;" onclick="return openTelegramProfile('${test.owner_username}', event)">💬</button>`);
                 }
+                headerActions.push(`<button class="btn-icon" style="width: 36px; height: 36px; font-size: 16px; border: none; background: transparent; color: #ff3b30;" onclick="openDropTestModal(${test.id}, event)">🗑️</button>`);
+                ownerBtnHtml = `<div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">${headerActions.join('')}</div>`;
 
                 let devInfoHtml = '';
                 if (test.instructions) {
@@ -2834,7 +2875,7 @@
                     const statusChip = (() => {
                         const s = project.system_status;
                         if (s === 'hidden_manual') {
-                            return `<button class="meta-chip" style="background: rgba(142,142,147,0.15);" onclick="showToast('Приложение скрыто. Ваша инвайт-ссылка продолжает работать.')">🚫 Скрыто (вручную)</button>`;
+                            return `<button class="meta-chip" style="background: rgba(142,142,147,0.15);" onclick="showToast('${t.visibilityManualToast}')">🚫 Скрыто (вручную)</button>`;
                         }
                         if (s === 'visible_new') {
                             let untilText = '';
@@ -2856,11 +2897,11 @@
                             return `<button class="meta-chip accent-green" onclick="showToast('${t.newBadgeToast.replace(/'/g, "\\'")}')">🟢 На бирже (до ${untilText})</button>`;
                         }
                         if (s === 'visible_quota') {
-                            return `<button class="meta-chip accent-green" onclick="showToast('Если вам больше не нужны тестеры для обмена, вы можете скрыть приложение с биржи, нажав на 👁️ в шапке.')">🟢 На бирже</button>`;
+                            return `<button class="meta-chip accent-green" onclick="showToast('${t.visibilityQuotaToast}')">🟢 На бирже</button>`;
                         }
                         if (s === 'hidden_quota') {
                             const shortage = project.tests_shortage || 1;
-                            return `<button class="meta-chip accent-orange" onclick="showToast('Возьмите на тест еще ${shortage} проекта, чтобы вернуть видимость на бирже.')">🟡 Нужно тестов: ${shortage}</button>`;
+                            return `<button class="meta-chip accent-orange" onclick="showToast('${t.visibilityNeedTestsToast.replace('{count}', shortage)}')">🟡 Нужно тестов: ${shortage}</button>`;
                         }
                         return '';
                     })();
@@ -3215,6 +3256,45 @@
                 proj.tests_shortage = prev.tests_shortage;
                 renderProjects();
                 showToast('Ошибка обновления видимости');
+            }
+        }
+
+        // --- Drop Test Modal ---
+        let _dropTestAppId = null;
+
+        function openDropTestModal(appId, event = null) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            _dropTestAppId = appId;
+            document.getElementById('drop-test-modal').classList.add('active');
+        }
+
+        function closeDropTestModal(event) {
+            if (event && event.target !== document.getElementById('drop-test-modal')) return;
+            document.getElementById('drop-test-modal').classList.remove('active');
+            _dropTestAppId = null;
+        }
+
+        async function confirmDropTest() {
+            if (!_dropTestAppId) return;
+            try {
+                const response = await fetch(`${API_BASE}/tests/${_dropTestAppId}/drop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tester_id: userId })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.detail || data.message || 'Drop test failed');
+                }
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                closeDropTestModal({ target: document.getElementById('drop-test-modal') });
+                await Promise.all([loadTasks(), loadProjects(true)]);
+            } catch (error) {
+                console.error('Drop test error:', error);
+                showToast(error.message || 'Network error');
             }
         }
 
